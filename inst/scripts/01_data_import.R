@@ -5,7 +5,7 @@
 ########################
 
 ### >>> Maak connectie met de databank en lees hulpbestanden in
-
+e <- try({
 if (connect_via_db) {
   #als onderstaande code fout geeft, dan is de connectie niet OK
   #dan best aan Pieter of IT vragen
@@ -73,7 +73,7 @@ if (connect_via_db) {
   if (!is.null(dfTreesTrend) & length(dfTreesTrend))
     save(dfTreesTrend, file = "data/dfTreesTrend.Rdata")
 
-  dbDisconnect(conn)
+  DBI::dbDisconnect(conn)
 
 } else {
   load("data/dfSoortInfo.Rdata")
@@ -84,7 +84,8 @@ if (connect_via_db) {
   load("data/dfNatuurindicatoren.Rdata")
   load("data/dfTreesTrend.Rdata")
 }
-
+})
+if (inherits(e, "try-error")) stop("READING DATA FAILED")
 ####################################
 ### Basismanipulaties Data
 ####################################
@@ -92,6 +93,7 @@ if (connect_via_db) {
 ### >>> Afgeleide datasets
 
 #! SoortselectieVolgorde
+e <- try({
 dfVolgorde <- dfSoortInfo %>%
   select(selectie = SoortIndeling, volgorde = SoortVolgorde) %>%
   group_by(selectie) %>%
@@ -167,3 +169,5 @@ dfTotaalBomen3J <-
   arrange(volgorde)
 
 cat("IMPORTSCRIPT VOLLEDIG UITGEVOERD\n")
+})
+if (inherits(e, "try-error")) stop("INITIAL DATA MANIPULATIONS FAILED")

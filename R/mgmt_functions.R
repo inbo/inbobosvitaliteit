@@ -12,7 +12,6 @@ install_necessary_packages <- function() {
   install.packages(setdiff(packages, rownames(installed.packages())))
 
   #benodigde libraries vanuit github
-  install_github("inbo/inbobosvitaliteit", dependencies = TRUE)
   install_github("inbo/INBOmd", dependencies = TRUE)
   install_github("inbo/INBOtheme", dependencies = TRUE)
 }

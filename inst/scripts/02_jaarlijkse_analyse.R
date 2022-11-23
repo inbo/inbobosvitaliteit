@@ -9,7 +9,7 @@
 #   zorg juist ervoor dat je de %>% op het einde van de laatste selectieregel niet meeneemt
 
 ###0.1 Samenstelling steekproef (Tabel 2 in rapport 2017)
-
+e <- try({
 bomen_calc(dfTrees, normal_groups) %>%
   select(selectie, AantalBomen, PctOfTotaalBomen) %>%
   filter(!duplicated(.)) %>%
@@ -25,23 +25,26 @@ bomen_calc(filter(dfTrees, SoortIndeling %in% c("overige lbs.","overige nbs.")),
   arrange(SoortIndeling, desc(AantalBomen)) %>%
   select(Jaar, SoortIndeling, Soort, AantalBomen) %>%
   write.csv2(file = file.path(outdir, "jaarlijks_02b_samenstellingsteekproefOverig.csv"))
-
+})
+if (inherits(e, "try-error")) warning("TABELLEN SAMENSTELLING STEEKPROEF MISLUKT")
 
 
 ###1.1 Aandeel beschadigde bomen leeftijd soort / verkleurde bomen leeftijd soort
 
 #1.1a Beschadigde bomen
-
+e <- try({
 bomen_calc(dfTrees, normal_groups, "Beschadigd") %>%
   select(SoortType, SoortIndeling, Beschadigd, PctBomen) %>%
   spread(key = Beschadigd, value = PctBomen)
+})
+if (inherits(e, "try-error")) warning("TABELLEN BESCHADIGD MISLUKT")
 
 #1.1b Verkleuring
 
 #Verkleuring is weggevallen in de dataset na 2006
 
 ###1.2 aandeel bomen 10% BV klassen / aandeel bomen EurBVklassen
-
+e <- try({
 bomen_calc(dfTrees, normal_groups, "BVKlasseEur")
 bomen_calc(dfTrees, normal_groups, "BVKlasse5")
 bomen_calc(dfTrees, normal_groups, "BVKlasse10")
@@ -53,9 +56,12 @@ bomen_calc(dfTrees, normal_groups, respons = "BladverliesNetto")
 ###1.4 Samenstelling steekproef soort (eigen interpretatie)
 
 bomen_calc(dfTrees, c("Jaar", "PlotNr"), "SPEC_DES", respons = "BladverliesNetto")
+})
+if (inherits(e, "try-error")) warning("TABELLEN NNVKLASSES MISLUKT")
 
 ###1.5 Gem en Med Leeftijd soort
 
+e <- try({
 bomen_calc(dfTrees, group = c("Jaar"), group2 = "SPEC_DES", respons = "Leeftijd")
 
 lft1 <- bomen_calc(dfTrees, normal_groups,  respons = "Leeftijd") %>% select(selectie, mean_value)
@@ -76,9 +82,12 @@ bomen_calc(dfTrees, c("Jaar","SoortType", "LeeftijdsklasseEur"), group2 = c( "So
 ###1.7 Aandeel soorten leeftijd soorttype
 
 bomen_calc(dfTrees, c("Jaar", "LeeftijdsklasseEur"), "SoortIndeling")
+})
+if (inherits(e, "try-error")) warning("TABELLEN VERDELING LEEFTIJDEN MISLUKT")
+
 
 ###1.9 Aandeel bomen 5% BV klassen
-
+e <- try({
 bomen_calc(dfTrees, normal_groups, "BVKlasse5")
 
 bomen_calc(dfTrees, normal_groups, "BVKlasseEur") %>%
@@ -116,10 +125,13 @@ dfTrees %>%
   map_dfr(wilcox_table, formula = BladverliesNetto ~ LeeftijdsklasseEur, .id = "selectie")
 ) %>% left_join(dfVolgorde) %>% arrange(volgorde) %>% select(-volgorde) %>%
   write.csv2(file.path(outdir, "jaarlijks_20_bladverlieswilcoxtabelnietgepaard.csv"))
+})
+if (inherits(e, "try-error")) warning("TABELLEN 5% NNV KLASSEN MISLUKT")
 
 
 #beschadigdde proefvlakken
 
+try({
 dfTrees %>%
   group_by(PlotNr, Gemeente) %>%
   summarize(gem_bladverlies = mean(BladverliesNetto)) %>%
@@ -159,6 +171,8 @@ spp <-
 
 ggsave(file.path(outdir, "jaarlijks_03_gemiddeld_aantal_beschadigde_proefvlakken_voor_hoofdboomsoort.png"), p,  width = fig_width, height = fig_height, dpi = 2 * fig_dpi)
 
+})
+if (inherits(e, "try-error")) warning("TABELLEN BESCHADIGDE PROEFVLAKKEN MISLUKT")
 
 ###1.10 Aandeel bomen Slijmuitvloei Soort
 
@@ -169,7 +183,7 @@ ggsave(file.path(outdir, "jaarlijks_03_gemiddeld_aantal_beschadigde_proefvlakken
 #Is weggevallen na 2006
 
 ###1.12 Aandeel bomen waterscheuten soort
-
+try({
 bomen_calc(dfTrees, group = normal_groups, group2 = "Waterscheuten") %>%
   left_join(dfVolgorde) %>%
   select(volgorde, selectie, PctBomen, Waterscheuten) %>%
@@ -223,9 +237,11 @@ bomen_calc(dfTrees, group = normal_groups, group2 = "PlotNr")
 
 #3.1b Vervangende bomen
 #??
+})
+if (inherits(e, "try-error")) warning("TABELLEN HOOFDSYMPTOMEN MISLUKT")
 
 #3.1cde gemiddeld bladverlies
-
+try({
 bomen_calc(dfTrees, group = extra_groups, respons = "BladverliesNetto") %>%
   left_join(dfVolgorde) %>% arrange(volgorde, LeeftijdsklasseEur) %>%
   select(selectie, LeeftijdsklasseEur, mean_value, median_value, sd, se) %>%
@@ -259,6 +275,8 @@ bomen_calc(dfTrees, c("Jaar", "PlotNr", "SPEC_DES"), respons = "Omtrek")
 ###3.3 Omtrek laatste 5 jaar (??)
 
 #Is hier een lopend gemiddelde bedoeld? Wat is de zin hiervan, want bomen groeien vrij gelijkmatig dacht ik?
+})
+if (inherits(e, "try-error")) warning("TABELLEN GEMIDDELD BLADVERLIES MISLUKT")
 
 #####################################################################################################
 
