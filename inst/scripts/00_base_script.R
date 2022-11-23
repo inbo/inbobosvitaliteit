@@ -5,7 +5,8 @@ last_year <- 2022       #laatst gebruikte jaar in de dataset
 years_2 <- c(last_year - 1, last_year)
 years_3 <- c(last_year - 2, last_year - 1, last_year)
 years_trend <- 1995:2022
-setwd("C:/bos/2023")    #locatie waar de bestanden moeten komen
+setwd(getwd())    #locatie waar de bestanden moeten komen
+
 plot_base_size <- 10    #standaard tekstgrootte in figuren
 local_script_copy <- FALSE  #maak een lokale kopie van de scripts?
 use_local_db_export <- FALSE #gebruik reeds ingeladen data voor dit jaar
@@ -20,12 +21,6 @@ library(tidyverse)
 library(inbobosvitaliteit)
 library(DBI)
 install_necessary_packages()
-
-### Laden van databank en voorbereidingen
-conn <- bosvitaliteit_connect()
-generate_file_structure()
-generate_tree_species_data()
-generate_sql_files()
 
 ### init sessie
 init_session(last_year, first_year = 1987, first_multiyear = 1995,

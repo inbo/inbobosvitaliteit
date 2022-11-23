@@ -3,14 +3,32 @@ R package with functions used for the forest vitality analysis specific for INBO
 
 #Usage
 
-Use the functionality of this library by using the start_script 00_base_script.R found in this repository under inst/scripts
+Make a new R project for the current year
 
-Or when using the package, load this script to your own computer by following command:
+Install the package with following code:
 
 ````
+if (!"remotes" %in% rownames(installed.packages())) install.packages("remotes")
+remotes::install_github("inbo/inbobosvitaliteit@main", dependencies = TRUE)
+```` 
+The @main is optional, and refers to the main branch, with @other_branch_name another branch of the repository can be installed.
+
+All necessary scripts are in the repository, but it can be useful to copy the master script that calls all other scripts to your local project with following code (this code copies it to your current work directory:
+
+```
  fp <- file.path(system.file(package = "inbobosvitaliteit"), 
                 "scripts", 
                 "00_base_script.R")
  
  file.copy(fp, to = file.path(getwd()))
- ````
+```
+
+Now you can run the 00_base_scripts line per line, only the most upper block of code should be updated to use the script
+
+```
+last_year <- 2022       #last year of data
+years_2 <- c(last_year - 1, last_year) #comparison between 2 years
+years_3 <- c(last_year - 2, last_year - 1, last_year) #between 3 years
+years_trend <- 1995:2022 #period for trend analysis
+setwd(getwd())    #work directory (can be customised eg> setwd("c/:bos/2023")
+``` 
