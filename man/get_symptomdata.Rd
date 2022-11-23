@@ -2,9 +2,16 @@
 % Please edit documentation in R/db_functions.R
 \name{get_symptomdata}
 \alias{get_symptomdata}
-\title{Get the sumptom data}
+\title{Get the symptom data}
 \usage{
-get_symptomdata(channel, jaar, sql, show_query = FALSE)
+get_symptomdata(
+  channel,
+  jaar,
+  sql = "data/tree_symptom_info.SQL",
+  show_query = FALSE,
+  local = FALSE,
+  load_path = "data/dfSymptoms.RDS"
+)
 }
 \arguments{
 \item{channel}{open DBI connection}
@@ -14,10 +21,14 @@ get_symptomdata(channel, jaar, sql, show_query = FALSE)
 \item{sql}{the sql file containing the query for the symptoms}
 
 \item{show_query}{flag if the query should be shown in the standard output}
+
+\item{local}{whether the data is loaded from load path or imported from the db and then saved in the load_path}
+
+\item{load_path}{path to save/load data}
 }
 \value{
 data.frame with symptom data
 }
 \description{
-Get the sumptom data
+Get the symptom data
 }

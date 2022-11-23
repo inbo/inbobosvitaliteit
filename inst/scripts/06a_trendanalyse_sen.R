@@ -1,9 +1,13 @@
+
+
 #TRENDANALYSE## >>> Trendanalyse
 
+
+e <- try({
 ### >>> Data inhoud
 
 #Aantal Bomen
-ggplot(dfTreesTrend, aes(x = Jaar)) + geom_bar() + ylab("Aantal bomen") 
+ggplot(dfTreesTrend, aes(x = Jaar)) + geom_bar() + ylab("Aantal bomen")
 
 ggsave(file = file.path(outdir, "trend_aantalbomen.png"), width = fig_width, height = fig_height, dpi = fig_dpi)
 
@@ -26,12 +30,14 @@ group_by(dfTreesTrend, Jaar) %>%
 ggsave(file = file.path(outdir, "trend_aantal_jaar_gemeten_per_plot.png"))
 
 dfTreesTrendV <- filter(dfTreesTrend, PlotNr %in% (filter(AantalPlotJaren, TeWeinigJaar == FALSE) %>% pull(PlotNr)))
+})
+if (inherits(e, "try-error")) stop("MISLUKT: DATA INHOUD VERKENNEN")
 
 
 ###################################################################################################
 ### DATA
 ###################################################################################################
-
+e <- try({
 dfTrendSummary <-
   bomen_calc(x = dfTreesTrend, group = normal_groups, respons = "BladverliesNetto") %>%
   mutate(lcl = mean_value - 1.96 * se,
@@ -62,7 +68,8 @@ dfTrendBeschadigdSoort <-
   mutate(selectie = SoortIndeling)
 
 dfTrendBeschadigd <- bind_rows(dfTrendBeschadigdTot, dfTrendBeschadigdSoort, dfTrendBeschadigdType)
-
+})
+if (inherits(e, "try-error")) stop("MISLUKT: DATA VOORBEREIDING")
 
 ####################################################################################################
 
@@ -70,7 +77,7 @@ dfTrendBeschadigd <- bind_rows(dfTrendBeschadigdTot, dfTrendBeschadigdSoort, dfT
 
 ###################################################################################################
 
-
+e <- try({
 set.seed(sen_seed)
 
 #dfSenResult bevat de samenvattende tabel per jaar en per plotnummer
@@ -131,10 +138,13 @@ for (i in unique(dfSenResult$selectie)) {
   file = file.path(outdir, paste0("trend_nnv_", i, ".png"))
   ggsave(plot = p, filename = file, dpi = fig_dpi, width = fig_width, height = fig_height)
 }
+})
+if (inherits(e, "try-error")) stop("MISLUKT: SEN GEMIDDELD BLADVERLIES")
 
 
 ###########
 
+e <- try({
 #Percentage beschadigde bomen   ==> Lijkt niet OK, helling altijd 0
 
 recalc_sen_besch <- TRUE
@@ -174,3 +184,4 @@ for (i in unique(dfSenResult$selectie)) {
   file = file.path(outdir, paste0("trend_pctbeschadigd_", i, ".png"))
   ggsave(plot = p, filename = file, dpi = fig_dpi, width = fig_width, height = fig_height)
 }
+if (inherits(e, "try-error")) stop("MISLUKT: SEN BESCHADIGD")

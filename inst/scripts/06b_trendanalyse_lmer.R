@@ -1,7 +1,7 @@
 ## Onderstaand bovenste blok is een kopie van 05a_Trendanalyse-Sen, zodat de scripts los van elkaar kunnen werken
 ## enkel 00_start.R moet gerund worden
 ## Voor Geert: dit script zal je zelf waarschijnlijk niet kunnen uitvoeren, omdat ik hiervoor brms gebruik, wat heel wat extra installatie vergt.
-
+e <- try({
 library(brms)
 library(tidyverse)
 
@@ -47,9 +47,12 @@ dfTrendBeschadigd <- bind_rows(dfTrendBeschadigdTot, dfTrendBeschadigdSoort, dfT
 dfBRMSbasis  <- bomen_calc(x = dfTreesTrend,
                           group = lapply(normal_groups, c, "PlotNr"),
                           respons = "BladverliesNetto")
+})
+if (inherits(e, "try-error")) stop("MISLUKT: DATA LADEN VOOR LMER")
 
 ##############################################################################################
 
+e <- try({
 nnvmodels <- list()
 
 for (sel in unique(dfBRMSbasis$selectie)) {
@@ -59,7 +62,7 @@ for (sel in unique(dfBRMSbasis$selectie)) {
     transmute(JaarC = (Jaar - meerjaarlijks[1])/diff(range(meerjaarlijks)), PlotNr, logBladverlies = log(mean_value + 2.5))
 
   model <-  try(
-    brm(logBladverlies ~ JaarC + (1|PlotNr), 
+    brm(logBladverlies ~ JaarC + (1|PlotNr),
         data = dfBrms, family = gaussian(),
         autocor = cor_ar(~ JaarC|PlotNr, p = 1), #te brede intervallen
         iter = 10000, thin = 20, chains = 3, cores = 3))
@@ -103,6 +106,8 @@ for (sel in names(nnvmodels)) {
   ggsave(p, file = file.path(outdir, paste0("trend_nnv_",sel, "_brms.png")), dpi = fig_dpi, width = fig_width, height = fig_height)
 
 }
+})
+if (inherits(e, "try-error")) stop("MISLUKT: LMER BLADVERLIES")
 
 
 
@@ -110,7 +115,7 @@ for (sel in names(nnvmodels)) {
 ### >>> Aandeel beschadigde bomen (TREND)
 ############################################################################################
 
-
+e <- try({
 dfBRMS_schade  <- bomen_calc(x = dfTreesTrend,
                            group = lapply(normal_groups, c, "PlotNr", "Beschadigd"))
 
@@ -174,12 +179,15 @@ for (sel in names(beschadigdmodels)) {
   ggsave(p, file = file.path(outdir, paste0("trend_pctbeschadigd_",sel, "_brms.png")), dpi = fig_dpi, width = fig_width, height = fig_height)
 
 }
+})
+if (inherits(e, "try-error")) stop("MISLUKT: LMER BESCHADIGDE  BOMEN")
 
 
 ############################################################################################
 ### >>> Aandeel beschadigde bomen (JAAR PER JAAR)
 ############################################################################################
 
+e <- try({
 dfBRMS_schade_yy  <- bomen_calc(x = dfTreesTrend,
                              group = lapply(normal_groups, c, "PlotNr", "Beschadigd")) %>%
   select(Jaar, PlotNr, Beschadigd, AantalBomen, selectie) %>%
@@ -215,4 +223,6 @@ ggplot(plotdata, aes(x = Jaar, y = Pctbeschadigd)) + geom_point() + geom_line() 
   ylab("Percentage Beschadigd (brms fit)")
 ggsave(file = file.path(outdir, "trend_beschadigd_brmsfit.png"), dpi = fig_dpi, height = fig_height, width = fig_width)
 
+})
+if (inherits(e, "try-error")) stop("MISLUKT: LMER JAAR PER JAAR")
 

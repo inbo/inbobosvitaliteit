@@ -8,10 +8,10 @@ get_treedata(
   channel,
   jaar,
   tree_indeling,
-  sql,
-  show_query = TRUE,
-  tweejaarlijks = NULL,
-  driejaarlijks = NULL
+  sql = "data/tree_info.SQL",
+  show_query = FALSE,
+  local = FALSE,
+  load_path = "data/dfTrees.RDS"
 )
 }
 \arguments{
@@ -25,9 +25,9 @@ get_treedata(
 
 \item{show_query}{flag if query should be shown in standard output}
 
-\item{tweejaarlijks}{optional the year to compare the current year against}
+\item{local}{if TRUE get the data from load_path else get the data from the DB and save a copy in load_path}
 
-\item{driejaarlijks}{optional the 2 years to compare the current year against}
+\item{load_path}{path to save/load data to/from}
 }
 \value{
 a data.frame containing all the tree information from the query

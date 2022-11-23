@@ -12,8 +12,7 @@ if (connect_via_db) {
   conn <- bosvitaliteit_connect()
 
   print("cat reading species metadata ...")
-  dfSoortInfo <- read.csv2("data/tree_reportmetadata.csv",
-                           stringsAsFactors = FALSE) %>%
+  dfSoortInfo <- read_csv2("data/tree_reportmetadata.csv") %>%
     rename(Soort = species,
            SoortType = species_main_cat,
            SoortIndeling = species_sub_cat,

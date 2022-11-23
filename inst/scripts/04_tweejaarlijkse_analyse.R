@@ -4,8 +4,36 @@
 ### 2 jaar ###
 ##############
 
-### >>> Toegevoegde en verdwenen maar levende bomen
+### AFGELEIDE DATASETS
 
+e <- try({
+  #! Tweejaarlijks
+  dfTrees2 <-
+    dfTrees2 %>%
+    mutate(prbo = paste0(PlotNr, BoomNr))
+
+  #!gemeenschappelijke bomen over de 2 jaar
+  dfTrees2Gmsch <-
+    inner_join(dfTrees2,
+               dfTrees2 %>%
+                 group_by(prbo) %>%
+                 summarize(aantal = n()) %>%
+                 filter(aantal == 2),
+               by = "prbo")
+
+  #!Berekening totalen 2-jaarlijks gemeenschappelijk
+  dfTotaalBomen2J <-
+    bomen_calc(dfTrees2Gmsch, normal_groups) %>%
+    select(selectie, Jaar, TotaalAantalBomen = AantalBomen) %>%
+    left_join(dfVolgorde, by = "selectie") %>%
+    arrange(volgorde)
+})
+if(inherits(e, "try-error")) stop("MISLUKT: Afgeleide datasets 2-jaarlijkse analyse")
+
+
+
+### >>> Toegevoegde en verdwenen maar levende bomen
+e <- try({
 #Toegevoegde bomen
 
 dfTrees2 %>% as_tibble() %>%
@@ -18,7 +46,7 @@ dfTrees2 %>% as_tibble() %>%
   filter(is.na(Jaar2)) %>%
   select(PlotNr, PlotNaam, Gemeente, BoomNr, Soort) %>%
   arrange(PlotNr, BoomNr) %>%
-  write.csv2(file = paste0(outdir, "tweejaarlijks_toegevoegde_bomen.csv"))
+  write.csv2(file = file.path(outdir, "tweejaarlijks_toegevoegde_bomen.csv"))
 
 #Verdwenen maar levende bomen
 
@@ -26,10 +54,13 @@ filter(dfTrees2, Jaar == tweejaarlijks[1]) %>%
   select(BoomKey,PlotNr, PlotNaam, Gemeente, BoomNr, Soort, VerwijderdReden, BladverliesNetto, SterfteJaar) %>%
   filter(!(BoomKey %in% (filter(dfTrees2, Jaar == tweejaarlijks[2]) %>% select(BoomKey) %>% .[[1]]))) %>%
   arrange(SterfteJaar, PlotNr, BoomNr) %>%
-  write.csv2(file = paste0(outdir, "tweejaarlijks_verdwenen_bomen.csv"))
+  write.csv2(file = file.path(outdir, "tweejaarlijks_verdwenen_bomen.csv"))
+})
+if(inherits(e, "try-error")) warning("MISLUKT: toegevoegde en verdwenen bomen")
 
 ### >>> Beschadigde bomen
 
+e <- try({
 dfBeschadigd2j <-
   bind_rows(
     dfTrees2Gmsch %>%
@@ -91,10 +122,13 @@ dfBeschadigd2j %>%
       test <- prop.test(x = .$pctBeschadigd *.$N, n = .$N)
       data.frame(p1 = test$estimate[1], p2 = test$estimate[2], pval_prop_test = test$p.value)
   }) %>%
-  write.csv2(file = paste0(outdir, "tweejaarlijks_36_aandeel_beschadigd.csv"))
+  write.csv2(file = file.path(outdir, "tweejaarlijks_36_aandeel_beschadigd.csv"))
+})
+if(inherits(e, "try-error")) warning("MISLUKT: BESCHADIGDE BOMEN")
 
 ### >>> Evolutie blad/naaldverlies
 
+e <- try({
 bind_rows(
   cbind(selectie = "totaal", wilcox_table(dfTrees2Gmsch, BladverliesNetto ~ Jaar | prbo)),
 
@@ -118,11 +152,13 @@ bind_rows(
   left_join(dfVolgorde) %>%
   arrange(volgorde) %>%
   select(-volgorde) %>%
-  write.csv2(paste0(outdir, "tweejaarlijks_37_gemiddeld_bladverlies.csv"))
+  write.csv2(file.path(outdir, "tweejaarlijks_37_gemiddeld_bladverlies.csv"))
+})
+if(inherits(e, "try-error")) warning("MISLUKT: EVOLUTIE BLADVERLIES")
 
 ### Aantal gestegen/gedaalde klassen
 
-
+e <- try({
 tmpBVklasse <-
   dfTrees2Gmsch %>%
   group_by(prbo, SoortType, SoortIndeling) %>%
@@ -154,11 +190,13 @@ bind_rows(
   spread(key = verschil, value = Pct, fill = 0.00) %>%
   left_join(dfVolgorde) %>%
   arrange(volgorde) %>%
-  write.csv2(paste0(outdir, "tweejaarlijks_38_klassenverschuivingen.csv"))
+  write.csv2(file.path(outdir, "tweejaarlijks_38_klassenverschuivingen.csv"))
+})
+if(inherits(e, "try-error")) warning("MISLUKT: KLASSENVERSCHUIVINGEN")
 
 
 ### Overzichtstabel per proefvlak (gemNNV, verschilNNV, %verschilNNV)
-
+e <- try({
 plotNNVs <- dfTrees2Gmsch %>%
   group_by(PlotNr, JaarS2) %>%
   summarize(gemNNV = mean(BladverliesNetto, na.rm = TRUE),
@@ -223,6 +261,8 @@ dfpart_aantal %>%
   left_join(testgemNNV, by = "PlotNr") %>%
   left_join(select(dfpart_besch, PlotNr, pctBeschadigd_J1, pctBeschadigd_J2, verschilbeschadigd), by = "PlotNr") %>%
   left_join(testPctBeschadigd, by = "PlotNr") %>%
-  write.csv2(file = paste0(outdir, "jaarlijks_appendix_cijfersperplot.csv"))
+  write.csv2(file = file.path(outdir, "jaarlijks_appendix_cijfersperplot.csv"))
+})
+if(inherits(e, "try-error")) warning("MISLUKT: CIJFERS PER PLOT")
 
 cat("ALL TWEEJAARLIJKS FINISHED\n")

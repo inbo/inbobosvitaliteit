@@ -2,7 +2,7 @@
 % Please edit documentation in R/db_functions.R
 \name{get_SymptomAnalysisdata}
 \alias{get_SymptomAnalysisdata}
-\title{Join the treedata eith the symptomdata in==on the variable MetingKey}
+\title{Join the treedata with the symptomdata on the variable MetingKey}
 \usage{
 get_SymptomAnalysisdata(trees, symptoms)
 }
@@ -15,5 +15,5 @@ get_SymptomAnalysisdata(trees, symptoms)
 data.frame with the joined dataset
 }
 \description{
-Join the treedata eith the symptomdata in==on the variable MetingKey
+Join the treedata with the symptomdata on the variable MetingKey
 }

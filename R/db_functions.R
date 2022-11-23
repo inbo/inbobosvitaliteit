@@ -1,3 +1,34 @@
+#' Read species metadata
+#'
+#' @param path locatie van de csv die de gegevens bevat
+#' @param local if TRUE read the csv and save the results in load_path else load the data from load_path
+#' @param load_path path where imported data is saved for load later
+#' @importFrom dplyr rename
+#' @importFrom readr read_csv2
+#'
+#' @return data.frame with species grouping information
+#' @export
+#'
+read_species_information <-
+  function(path = "data/tree_reportmetadata.csv",
+           local = FALSE,
+           load_path = "data/dfSoortInfo.RDS") {
+    if(!local) {
+      rv <- read_csv2(path) %>%
+        rename(Soort = .data$species,
+               SoortType = .data$species_main_cat,
+               SoortIndeling = .data$species_sub_cat,
+               SoortVolgorde = .data$species_order)
+      dim(rv)
+      if (!is.null(rv) & length(rv))
+        saveRDS(rv, file = load_path)
+    } else {
+      rv <- readRDS(load_path)
+    }
+    return(rv)
+  }
+
+
 
 ###############################################################
 
@@ -179,24 +210,44 @@ bosvitaliteit_connect <- function(){
 #' @param jaar current year
 #' @param tree_indeling file containing the tree metadata
 #' @param sql file containing the sql query
+#' @param local if TRUE get the data from load_path else get the data from the DB and save a copy in load_path
+#' @param load_path path to save/load data to/from
 #' @param show_query flag if query should be shown in standard output
-#' @param tweejaarlijks optional the year to compare the current year against
-#' @param driejaarlijks optional the 2 years to compare the current year against
+#'
 #' @importFrom utils head
 #'
 #' @return a data.frame containing all the tree information from the query
 #' @export
 #'
-get_treedata <- function(channel, jaar, tree_indeling, sql, show_query = TRUE,
-                         tweejaarlijks = NULL, driejaarlijks = NULL) {
+get_treedata <- function(channel,
+                         jaar,
+                         tree_indeling,
+                         sql = "data/tree_info.SQL",
+                         show_query = FALSE,
+                         local = FALSE,
+                         load_path = "data/dfTrees.RDS") {
+  if (substring(load_path, nchar(load_path)-3, nchar(load_path)) != ".RDS")
+    stop("File extension of load_path should be .RDS")
+
+  if (length(jaar) == 2)
+    load_path <- gsub(".RDS", "_2.RDS", load_path)
+  if (length(jaar) == 3)
+    load_path <- gsub(".RDS", "_3.RDS", load_path)
+  if (length(jaar) > 3)
+    load_path <- gsub(".RDS", "_trend.RDS", load_path)
+
+  if (local) {
+      return(readRDS(load_path))
+  }
+
+  #deze 2 lijnen code zijn nog niet in orde
   if(is.null(tweejaarlijks)) tweejaarlijks <- c(max(jaar) - 1, max(jaar))
   if(is.null(driejaarlijks))
     driejaarlijks <- c(max(jaar) - 2, max(jaar) -1, max(jaar))
+
   jaarstring <- paste(jaar, collapse = ",")
   whereClause <-  paste0(" where w.WRNG_JAA in (", jaarstring, ")")
-  dfTreeIndeling <- tree_indeling
-  sql <- c(sql, whereClause)
-  sql <- paste(sql, collapse = "\n")
+  sql <- paste(c(readLines(sql), whereClause), collapse = "\n")
   if (show_query) cat(sql, "\n")
 
   df <- dbGetQuery(channel, sql)
@@ -257,17 +308,20 @@ get_treedata <- function(channel, jaar, tree_indeling, sql, show_query = TRUE,
                                          NA))),
            prbo = paste0(.data$PlotNr, .data$BoomNr)) %>%
     left_join(tree_indeling, by = c("Soortnummer" = "SPEC_EUR_CDE"))
-  df
+  if (!is.null(df)) saveRDS(df, load_path)
+  return(df)
 }
 
 #######################################################################
 
-#' Get the sumptom data
+#' Get the symptom data
 #'
 #' @param channel open DBI connection
 #' @param jaar the year of which the symptoms are to be read
 #' @param sql the sql file containing the query for the symptoms
 #' @param show_query flag if the query should be shown in the standard output
+#' @param local whether the data is loaded from load path or imported from the db and then saved in the load_path
+#' @param load_path path to save/load data
 #'
 #' @return data.frame with symptom data
 #' @importFrom DBI dbGetQuery
@@ -275,11 +329,18 @@ get_treedata <- function(channel, jaar, tree_indeling, sql, show_query = TRUE,
 #' @importFrom utils str
 #' @export
 #'
-get_symptomdata <- function(channel, jaar, sql, show_query = FALSE) {
+get_symptomdata <- function(channel,
+                            jaar,
+                            sql = "data/tree_symptom_info.SQL",
+                            show_query = FALSE,
+                            local = FALSE,
+                            load_path = "data/dfSymptoms.RDS") {
+  if (local) {
+    return(readRDS(load_path))
+  }
   jaarstring <- paste(jaar, collapse = ",")
   whereClause = paste0(" where w.WRNG_JAA in (", jaarstring, ")")
-  sql <- c(sql, whereClause)
-  sql <- paste(sql, collapse = "\n")
+  sql <- paste(c(readLines(sql), whereClause), collapse = "\n")
   if (show_query) cat(sql)
 
   df <-
@@ -315,12 +376,14 @@ get_symptomdata <- function(channel, jaar, sql, show_query = FALSE) {
                                              labels = c("vraat (wild, vee)", "insecten", "schimmels", "abiotisch",
                                                         "mens", "andere", "onbekend")),
            AantastingsKey = paste(.data$MetingKey, .data$AangetastDeelCode, .data$SymptoomCode, .data$SymptoomSpecCode, sep = "_"))
-  df
+
+  if (!is.null(df)) saveRDS(df, load_path)
+  return(df)
 }
 
 ############################################################
 
-#' Join the treedata eith the symptomdata in==on the variable MetingKey
+#' Join the treedata with the symptomdata on the variable MetingKey
 #'
 #' @param trees dataset containing tree information
 #' @param symptoms  dataset containing symptom information
