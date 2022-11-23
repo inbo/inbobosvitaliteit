@@ -14,11 +14,11 @@ get_symtomsummary <- function(trees, symptoms) {
   str(symptoms$MetingKey)
   df <-
     left_join(trees, symptoms, by = c("MetingKey")) %>%
-    group_by(WaarnemingKey, Jaar, PlotNr, BoomNr)
+    group_by(.data$WaarnemingKey, .data$Jaar, .data$PlotNr, .data$BoomNr)
 
   dfsum <-
     summarize(df,
-              AantalSymptomen = sum(!is.na(SymptoomCode)))
+              AantalSymptomen = sum(!is.na(.data$SymptoomCode)))
   dfsum
 }
 
@@ -35,6 +35,7 @@ get_symtomsummary <- function(trees, symptoms) {
 #' @param groups0 first grouping variable
 #' @param groups1 second grouping variable
 #' @param groups2 third grouping variable
+#' @importFrom dplyr bind_cols n_distinct
 #'
 #' @return dataframe with summarized tree information
 #' @export
@@ -79,13 +80,13 @@ summarize_treedata <-
 
   #elementary grouping using groups0
   df0 <- df %>%
-    group_by_at(groups0) %>%
+    group_by_at(.data$groups0) %>%
     summarize(tot_n_records = n(),
               tot_n_unique = n_distinct(.data$.id))
 
   #grouping using groups0, groups1 en groups2
   df1 <- df %>%
-    group_by_at(c(groups0, groups1, groups2)) %>%
+    group_by_at(c(.data$groups0, .data$groups1, .data$groups2)) %>%
     summarize(n_records = n(),
               n_unique_id = n_distinct(.data$.id),
               n_unique_meas = n_distinct(.data$.meas),
@@ -99,15 +100,16 @@ summarize_treedata <-
   #groepeer opnieuw maar nu enkel op groups0 en groups1, om percentages te kunnen berekenen over groups2
   df2 <- df1 %>%
     group_by_at(c(groups0, groups1)) %>%
-    mutate(pct_records = n_records / sum(n_records),
-           pct_id = n_unique_vals / sum(n_unique_vals),
-           pct_unique = n_unique_vals / sum(n_unique_vals),
-           set = paste(c(groups0, groups1, groups2), collapse = "."))
+    mutate(pct_records = .data$n_records / sum(.data$n_records),
+           pct_id = .data$n_unique_vals / sum(.data$n_unique_vals),
+           pct_unique = .data$n_unique_vals / sum(.data$n_unique_vals),
+           set = paste(c(.data$groups0, .data$groups1, .data$groups2),
+                       collapse = "."))
 
   df2 <- df2 %>%
     left_join(df0, by = groups0) %>%
-    mutate(pct_of_all_ids = n_unique_id / tot_n_unique * 100,
-           pct_of_all_records = n_records / tot_n_records * 100)
+    mutate(pct_of_all_ids = .data$n_unique_id / .data$tot_n_unique * 100,
+           pct_of_all_records = .data$n_records / .data$tot_n_records * 100)
 
   df2
 }
@@ -136,6 +138,10 @@ summarize_treedata <-
 #' @return een tabel met per combinatie van groepen (in group meegegeven) een inschatting van het aantal bomen,
 #' aantal records, unieke waarden en de overeenkomstige percentages, eventueel nog aangevuld met statistieken op een responsvariabele (mean, se, sd, mediaan)
 #' @export
+#' @importFrom stats na.omit
+#' @importFrom dplyr %>% group_by_at vars mutate n bind_rows filter
+#' @importFrom rlang .data syms
+#' @importFrom stats sd median
 #'
 bomen_calc <-
   function(x,
@@ -155,8 +161,9 @@ bomen_calc <-
     #ofwel als een lijst van alle groeperingen die gebruikt worden
     if (!is.list(group))  grouplist <- list(group) else  grouplist <- group
     if ("Jaar" %in% names(x)) {
-      dftotaalBomen <- group_by(x, Jaar) %>% summarize(TotaalBomen = length(unique(MetingKey)),
-                                                       TotaalRecords = length(MetingKey))
+      dftotaalBomen <- group_by(x, .data$Jaar) %>%
+        summarize(TotaalBomen = length(unique(.data$MetingKey)),
+                  TotaalRecords = length(.data$MetingKey))
     }
 
     #Loop door alle groepen heen
@@ -166,19 +173,33 @@ bomen_calc <-
 
       rv[[i]] <-
         group_by_at(x, vars(c(group, group2))) %>%
-        summarize(AantalBomen = length(unique(MetingKey)),
-                  AantalRecords = length(MetingKey),
-                  AantalAantastingen = length(unique(AantastingsKey)),
-                  AantalUnique = ifelse(is.null(uniquecount), NA, length(unique(!!!syms(uniquecount)))),
-                  mean_value = ifelse(is.null(respons), NA, mean(.data[[respons]])),
-                  sd = ifelse(is.null(respons), NA, ifelse(is.na(sd(.data[[respons]])), 0, sd(.data[[respons]]))), #om NaN te vermijden
-                  se = ifelse(is.null(respons), NA, ifelse(is.na(sd(.data[[respons]])), 0, sd(.data[[respons]])/sqrt(n()))), #om NaN te vermijden
-                  median_value = ifelse(is.null(respons), NA, median(.data[[respons]]))) %>%
+        summarize(AantalBomen = length(unique(.data$MetingKey)),
+                  AantalRecords = length(.data$MetingKey),
+                  AantalAantastingen = length(unique(.data$AantastingsKey)),
+                  AantalUnique = ifelse(is.null(uniquecount),
+                                        NA,
+                                        length(unique(!!!syms(uniquecount)))),
+                  mean_value = ifelse(is.null(respons),
+                                      NA,
+                                      mean(.data[[respons]])),
+                  sd = ifelse(is.null(respons),
+                              NA,
+                              ifelse(is.na(sd(.data[[respons]])),
+                                     0,
+                                     sd(.data[[respons]]))), # NaN vermijden
+                  se = ifelse(is.null(respons),
+                              NA,
+                              ifelse(is.na(sd(.data[[respons]])),
+                                     0,
+                                     sd(.data[[respons]])/sqrt(n()))),
+                  median_value = ifelse(is.null(respons),
+                                        NA,
+                                        median(.data[[respons]]))) %>%
         group_by_at(vars(group)) %>%
         na.action() %>%
-        mutate(PctBomen = AantalBomen / sum(AantalBomen) * 100,
-               PctRecords = AantalRecords / sum(AantalRecords) * 100,
-               PctUnique = AantalUnique / sum(AantalUnique) * 100,
+        mutate(PctBomen = .data$AantalBomen / sum(.data$AantalBomen) * 100,
+               PctRecords = .data$AantalRecords / sum(.data$AantalRecords) * 100,
+               PctUnique = .data$AantalUnique / sum(.data$AantalUnique) * 100,
                Set = paste(group, collapse = "."))
       print(rv[[i]])
     }
@@ -187,8 +208,8 @@ bomen_calc <-
     if ("Jaar" %in% names(bc)) {
       bc <-
         left_join(bc, dftotaalBomen, by = "Jaar") %>%
-        mutate(PctOfTotaalBomen = AantalBomen / TotaalBomen * 100,
-               PctOfTotaalRecords = AantalRecords / TotaalRecords * 100)
+        mutate(PctOfTotaalBomen = .data$AantalBomen / .data$TotaalBomen * 100,
+               PctOfTotaalRecords = .data$AantalRecords / .data$TotaalRecords * 100)
     }
 
     gvars <- unique(c(unlist(grouplist), group2))
@@ -200,9 +221,13 @@ bomen_calc <-
     if (is.null(bc$SoortType)) bc$SoortType <- NA
 
     bc <- mutate(bc,
-                 selectie = ifelse(!is.na(Soort), as.character(Soort),
-                                   ifelse(!is.na(SoortIndeling), as.character(SoortIndeling),
-                                          ifelse(!is.na(SoortType),as.character(SoortType),"totaal"))))
+                 selectie = ifelse(!is.na(.data$Soort),
+                                   as.character(.data$Soort),
+                                   ifelse(!is.na(.data$SoortIndeling),
+                                          as.character(.data$SoortIndeling),
+                                          ifelse(!is.na(.data$SoortType),
+                                                 as.character(.data$SoortType),
+                                                 "totaal"))))
 
     if (uniquecount == "do_nothing") {
       bc$AantalUnique <- bc$PctUnique <- NULL
@@ -225,12 +250,16 @@ bomen_calc <-
 #' @param alphas the confidence limits to calculate
 #' @param paired flag to set the data paired (in conjunction with | in the formula)
 #' @param ... additional parameters
+#' @importFrom dplyr select mutate_if
+#' @importFrom tidyr spread
+#' @importFrom stats wilcox.test
 #'
 #' @return data.frame with wilcoxon results
 #' @export
 #'
 wilcox_table <- function(data, formula = BladverliesNetto ~ LeeftijdsklasseEur,
                          alphas = c(0.05,0.01,0.001), paired = TRUE,  ...){
+  . <- NULL
   #Indien er een variabele na | staat, wordt een gepaarde test uitgevoerd op deze variabele
   #geen gepaarde test
   if (length(formula[[3]]) == 1) {

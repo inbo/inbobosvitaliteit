@@ -1,44 +1,4 @@
 
-#' Get script location (using a local copy or not)
-#'
-#' @param local do you want a local copy on your hard disk to work from
-#' @param target target path when a local copy is made
-#'
-#' @return path to script location
-#' @export
-get_script_location <- function(local = local_copy, target = "scripts") {
-  if (!local) {
-    script_path <-
-      file.path(system.file(package = "inbobosvitaliteit"), "scripts")
-    return(script_path)
-  }
-  #else
-  if (!dir.exists(target)) dir.create(target)
-  files <- list.files(system.file(package = "inbobosvitaliteit", "scripts"),
-                      full.names = TRUE)
-  for (fp in files) {
-    file.copy(fp, to = file.path(getwd(), target))
-  }
-  script_path <- target #script directory on local hard drive
-  return(script_path)
-}
-
-#######################################################################
-
-#' Generate the necessary folders for the project exports
-#'
-#' @param root directory where the file structure should start from
-#'
-#' @return directories created on the file system
-#' @export
-#'
-generate_file_structure <- function(root = getwd()) {
-  if (!dir.exists("data")) dir.create("data")
-  if (!dir.exists("output")) dir.create("output")
-  if (!dir.exists("scripts")) dir.create("scripts")
-}
-
-
 ###############################################################
 
 
@@ -190,80 +150,6 @@ tblSoort s on s.SPEC_ID = b.BOOM_SPEC_ID",
 ##########################
 ##########################
 
-###################################################################
-
-#' Functie om de instelvariabelen te zetten om de scripts te kunnen runnen
-#'
-#' @param year laatste datajaar van de analyse
-#' @param first_year Eerste jaar die meegenomen wordt de heel globale figuren zoals voor de natuurindicatoren
-#' @param first_multiyear Eerste jaar die meegenomen wordt voor de meerjaarlijkse analyses
-#' @param connect_via_db haal de data uit de db indien TRUE, anders gebruik lokale files die eerder geïmporteerd werden
-#' @param fig_width standaard figuurbreedte in inch
-#' @param fig_height standaard figuurhoogote in inch
-#' @param fig_dpi standaard resolutie voor de figuren
-#' @param sen_boot aantal bootstrap samples om betrouwbaarheidsintervallen op de sen slope te bepalen, indien 0 dan wordt geen bootstrap uitgevoerd
-#' @param lmer_boot aantal bootstrap samples om  betrouwbaarheidsintervallen voor de lineaire modellen te bepalen, indien 0 dan wordt geen bootstrap uitgevoerd
-#'
-#' @return maakt verschillende golbale variabelen aan: jaarkeuze, pathkeuze, tweejaarlijks, driejaarlijks, meerjaarlijks, jaren_natuurindicatoren, outdir, connect_via_db, normal_groups, all_groups, extended_groups, groups_multiyear, extra_groups
-#' @export
-#'
-init_session <-
-  function(year,
-           first_year = 1987,
-           first_multiyear = 1995,
-           connect_via_db = TRUE,
-           outdir = "output",
-           fig_width = 7,
-           fig_height = 5,
-           fig_dpi = 300,
-           sen_boot = 200,
-           lmer_boot = 200) {
-
-    #globale variabelen
-    fig_width <<- fig_width
-    fig_height <<- fig_height
-    fig_dpi <<- fig_dpi
-    jaarkeuze <<- year
-    tweejaarlijks <<- c(jaarkeuze-1, jaarkeuze)
-    driejaarlijks <<- c(jaarkeuze-2, jaarkeuze-1, jaarkeuze)
-    meerjaarlijks <<- 1995:jaarkeuze
-    connect_via_db <<- connect_via_db
-    outdir <<- outdir
-    jaren_natuurindicatoren <<- 1987:jaarkeuze
-
-    #extra variabelen (created globally)
-
-    normal_groups    <<- list(c("Jaar"),
-                              c("Jaar", "SoortType"),
-                              c("Jaar", "SoortIndeling"))
-    all_groups       <<- list(c("Jaar"),
-                              c("Jaar", "LeeftijdsklasseEur"),
-                              c("Jaar", "SoortType"),
-                              c("Jaar", "SoortIndeling"),
-                              c("Jaar", "LeeftijdsklasseEur", "SoortType"),
-                              c("Jaar", "LeeftijdsklasseEur", "SoortIndeling"))
-    extended_groups <<-  list(c("Jaar"),
-                              c("Jaar", "SoortType"),
-                              c("Jaar", "SoortIndeling"),
-                              c("Jaar", "Soort"))
-    groups_multiyear <<- list(c("Jaar"),
-                              c("Jaar", "LeeftijdsklasseEur"),
-                              c("Jaar", "SoortType"),
-                              c("Jaar", "SoortType", "LeeftijdsklasseEur"),
-                              c("Jaar", "SoortIndeling"))
-
-    extra_groups     <<- list(c("Jaar"),
-                              c("Jaar", "LeeftijdsklasseEur"),
-                              c("Jaar", "SoortType"),
-                              c("Jaar", "SoortType", "LeeftijdsklasseEur"),
-                              c("Jaar", "SoortIndeling"))
-
-    #benodigde libraries
-    packages <- c("here", "odbc", "DBI", "tidyverse", "rkt", "rlang", "lme4", "remotes")
-    install.packages(setdiff(packages, rownames(installed.packages())))
-
-    invisible()
-  }
 
 #########################################################################
 
@@ -296,6 +182,7 @@ bosvitaliteit_connect <- function(){
 #' @param show_query flag if query should be shown in standard output
 #' @param tweejaarlijks optional the year to compare the current year against
 #' @param driejaarlijks optional the 2 years to compare the current year against
+#' @importFrom utils head
 #'
 #' @return a data.frame containing all the tree information from the query
 #' @export
@@ -317,30 +204,30 @@ get_treedata <- function(channel, jaar, tree_indeling, sql, show_query = TRUE,
   maxOmtrekKlasse <- ceiling(max(df$Omtrek, na.rm = TRUE)/50)
   df <-
     mutate(df,
-           BladverliesNetto = as.numeric(BladverliesNetto),
-           Soortnummer = as.integer(Soortnummer),
-           BVKlasseEur = cut(BladverliesNetto,
+           BladverliesNetto = as.numeric(.data$BladverliesNetto),
+           Soortnummer = as.integer(.data$Soortnummer),
+           BVKlasseEur = cut(.data$BladverliesNetto,
                              breaks = c(0, 10, 25, 60, 99, 100),
                              include.lowest = TRUE,
                              labels = c("0-10%", "10+-25%", "25+-60%", "60+-99%", "100%")),
-           Beschadigd = cut(BladverliesNetto,
+           Beschadigd = cut(.data$BladverliesNetto,
                             breaks = c(0,25,100),
                             include.lowest = TRUE,
                             labels = c("onbeschadigd", "beschadigd")),
-           BeschadigdNum = as.numeric(Beschadigd) - 1,
-           Dood = cut(BladverliesNetto,
+           BeschadigdNum = as.numeric(.data$Beschadigd) - 1,
+           Dood = cut(.data$BladverliesNetto,
                       breaks = c(0, 99.9, 100),
                       include.lowest = TRUE,
                       labels = c("levend", "dood")),
-           LeeftijdsklasseEur = cut(Leeftijd,
+           LeeftijdsklasseEur = cut(.data$Leeftijd,
                                     breaks = c(0, 59, Inf),
                                     labels = c("jong", "oud"),
                                     include.lowest = TRUE),
-           OmtrekklasseEur = cut(Omtrek,
+           OmtrekklasseEur = cut(.data$Omtrek,
                                  breaks = 0:maxOmtrekKlasse * 50,
                                  include.lowest = TRUE,
                                  labels = paste0(0:(maxOmtrekKlasse - 1)*50, "-", 1:maxOmtrekKlasse*50, "cm")),
-           BVKlasse5 = cut(BladverliesNetto,
+           BVKlasse5 = cut(.data$BladverliesNetto,
                            breaks = c(0, 1, seq(5,95,by = 5), 99, 100),
                            include.lowest = TRUE,
                            labels = paste0(c(0,1 + 0:19*5, 100),
@@ -348,27 +235,27 @@ get_treedata <- function(channel, jaar, tree_indeling, sql, show_query = TRUE,
                                            c("", 1:19*5, 99, ""),
                                            c(rep("%", 21), "% dode boom")
                            )),
-           BVKlasse10 = cut(BladverliesNetto,
+           BVKlasse10 = cut(.data$BladverliesNetto,
                             breaks = c(0:10*10), include.lowest = TRUE,
                             labels = paste0(c(0, seq(11,91, by = 10)), "-",
                                             c(seq(10,100,by = 10)), "%")),
-           BVKlassePiechart = cut(BladverliesNetto,
+           BVKlassePiechart = cut(.data$BladverliesNetto,
                                   breaks = c(0,10,25,40,100),
                                   include.lowest = TRUE,
                                   labels = paste(c(0,11,26,41), c(10,25,40,100), sep = "-")),
-           JaarS2 = ifelse(Jaar == tweejaarlijks[1],
+           JaarS2 = ifelse(.data$Jaar == tweejaarlijks[1],
                            "J1",
-                           ifelse(Jaar == tweejaarlijks[2],
+                           ifelse(.data$Jaar == tweejaarlijks[2],
                                   "J2",
                                   NA)),
-           JaarS3 = ifelse(Jaar == driejaarlijks[1],
+           JaarS3 = ifelse(.data$Jaar == driejaarlijks[1],
                            "J1",
-                           ifelse(Jaar == driejaarlijks[2],
+                           ifelse(.data$Jaar == driejaarlijks[2],
                                   "J2",
-                                  ifelse(Jaar == driejaarlijks[3],
+                                  ifelse(.data$Jaar == driejaarlijks[3],
                                          "J3",
                                          NA))),
-           prbo = paste0(PlotNr, BoomNr)) %>%
+           prbo = paste0(.data$PlotNr, .data$BoomNr)) %>%
     left_join(tree_indeling, by = c("Soortnummer" = "SPEC_EUR_CDE"))
   df
 }
@@ -383,6 +270,9 @@ get_treedata <- function(channel, jaar, tree_indeling, sql, show_query = TRUE,
 #' @param show_query flag if the query should be shown in the standard output
 #'
 #' @return data.frame with symptom data
+#' @importFrom DBI dbGetQuery
+#' @importFrom dplyr if_else
+#' @importFrom utils str
 #' @export
 #'
 get_symptomdata <- function(channel, jaar, sql, show_query = FALSE) {
@@ -394,37 +284,37 @@ get_symptomdata <- function(channel, jaar, sql, show_query = FALSE) {
 
   df <-
     dbGetQuery(channel, sql, stringsAsFactors = FALSE, nullstring = -1) %>%
-    mutate(SymptoomCode = as.numeric(SymptoomCode),
-           SymptoomOorzaakCode = as.numeric(SymptoomOorzaakCode),
-           AangetastDeelCode = as.numeric(AangetastDeelCode))
+    mutate(SymptoomCode = as.numeric(.data$SymptoomCode),
+           SymptoomOorzaakCode = as.numeric(.data$SymptoomOorzaakCode),
+           AangetastDeelCode = as.numeric(.data$AangetastDeelCode))
 
   print(str(df))
 
   df <- df %>%
-    mutate(OnderdeelBoomCat = if_else(AangetastDeelCode < 0, "Unknown",
-                                      if_else(AangetastDeelCode < 20,
+    mutate(OnderdeelBoomCat = if_else(.data$AangetastDeelCode < 0, "Unknown",
+                                      if_else(.data$AangetastDeelCode < 20,
                                               "Bladeren",
-                                              if_else(AangetastDeelCode < 30,
+                                              if_else(.data$AangetastDeelCode < 30,
                                                       "Takken", "Stam"))),
-           SymptoomExtent = if_else(SymptoomMeting < 0, "Unknown",
-                                    if_else(SymptoomMeting > 1, "Zware schade", "Beperkte schade")),
-           Symptoom = replace(Symptoom, Symptoom == "-1", "NVT"),
-           SymptoomSpecificatie = replace(SymptoomSpecificatie, SymptoomSpecificatie == "-1", "Unknown"),
-           SymptoomExtent = if_else(SymptoomMeting < 0, "Unknown",
-                                    if_else(SymptoomMeting < 2, "Beperkte schade", "Zware schade")),
-           SymptoomVerkleurd = ifelse(SymptoomCode %in% c(2,3), TRUE, FALSE), #nodig omdat bomen beide verkleuringen samen kunnen hebben
-           SymptoomAbnormaalVerkleurd = ifelse(SymptoomCode %in% c(2,3) & SymptoomMeting > 1, TRUE, FALSE ),
-           LeeftijdSchade = replace(LeeftijdSchade, LeeftijdSchade == "-1", "Unknown"),
-           SymptoomOorzaak = replace(SymptoomOorzaak, SymptoomOorzaak == "-1", "Unknown"),
-           SymptoomOrganisme = replace(SymptoomOrganisme, SymptoomOrganisme == "-1", "Unknown"),
-           SymptoomOorzaakGroep = ifelse(SymptoomOorzaakCode < 1000,
-                                         floor(SymptoomOorzaakCode/100)*100,
-                                         floor(SymptoomOorzaakCode/10000)*100),
-           SymptoomOorzaakGroepNaam = factor(SymptoomOorzaakGroep,
+           SymptoomExtent = if_else(.data$SymptoomMeting < 0, "Unknown",
+                                    if_else(.data$SymptoomMeting > 1, "Zware schade", "Beperkte schade")),
+           Symptoom = replace(.data$Symptoom, .data$Symptoom == "-1", "NVT"),
+           SymptoomSpecificatie = replace(.data$SymptoomSpecificatie, .data$SymptoomSpecificatie == "-1", "Unknown"),
+           SymptoomExtent = if_else(.data$SymptoomMeting < 0, "Unknown",
+                                    if_else(.data$SymptoomMeting < 2, "Beperkte schade", "Zware schade")),
+           SymptoomVerkleurd = ifelse(.data$SymptoomCode %in% c(2,3), TRUE, FALSE), #nodig omdat bomen beide verkleuringen samen kunnen hebben
+           SymptoomAbnormaalVerkleurd = ifelse(.data$SymptoomCode %in% c(2,3) & .data$SymptoomMeting > 1, TRUE, FALSE ),
+           LeeftijdSchade = replace(.data$LeeftijdSchade, .data$LeeftijdSchade == "-1", "Unknown"),
+           SymptoomOorzaak = replace(.data$SymptoomOorzaak, .data$SymptoomOorzaak == "-1", "Unknown"),
+           SymptoomOrganisme = replace(.data$SymptoomOrganisme, .data$SymptoomOrganisme == "-1", "Unknown"),
+           SymptoomOorzaakGroep = ifelse(.data$SymptoomOorzaakCode < 1000,
+                                         floor(.data$SymptoomOorzaakCode/100)*100,
+                                         floor(.data$SymptoomOorzaakCode/10000)*100),
+           SymptoomOorzaakGroepNaam = factor(.data$SymptoomOorzaakGroep,
                                              levels = c(100,200,300,400,500,800,900),
                                              labels = c("vraat (wild, vee)", "insecten", "schimmels", "abiotisch",
                                                         "mens", "andere", "onbekend")),
-           AantastingsKey = paste(MetingKey, AangetastDeelCode, SymptoomCode, SymptoomSpecCode, sep = "_"))
+           AantastingsKey = paste(.data$MetingKey, .data$AangetastDeelCode, .data$SymptoomCode, .data$SymptoomSpecCode, sep = "_"))
   df
 }
 

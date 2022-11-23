@@ -11,28 +11,16 @@ local_script_copy <- FALSE
 #Lees de bestanden uit een eerdere database export met deze scripts
 use_local_db_export <- FALSE
 
+### ENKEL AANPASSEN INDIEN PROBLEMEN EN DE SCRIPTS GEWIJZIGD ZIJN
 
-### ENKEL AANPASSEN INDIEN PROBLEMEN
-
-#Check main necessary packages
-if (!"remotes" %in% rownames(installed.packages())) {
-  install.packages("remotes")
-}
-if (!"tidyverse" %in% rownames(installed.packages())) {
-  install.packages("tidyverse")
-}
-if (!"INBOtheme" %in% rownames(installed.packages())) {
-  remotes::install_github("inbo/INBOmd", dependencies = TRUE) # nolint
-}
-if (!"inbobosvitaliteit" %in% rownames(installed.packages())) {
-  remotes::install_github("inbo/inbobosvitaliteit", dependencies = TRUE) # nolint
-}
+if (!"remotes" %in% rownames(installed.packages())) install.packages("remotes")
+remotes::install_github("inbo/inbobosvitaliteit", dependencies = TRUE)
 
 #load packages
 library(tidyverse)
 library(inbobosvitaliteit)
 library(DBI)
-
+install_necessary_packages()
 
 ### Laden van databank en voorbereidingen
 conn <- bosvitaliteit_connect()
@@ -52,22 +40,22 @@ theme_set(INBOtheme::theme_inbo(plot_base_size))
 source(file.path(script_path, "01_data_import.R"))
 
 #jaarlijkse analyse
-source(file.path(script_path, "02_jaarlijkseAnalyse.R"))
+source(file.path(script_path, "02_jaarlijkse_analyse.R"))
 
 #symptomen analyse
-source(file.path(script_path, "03_SymptomenAnalyse.R"))
+source(file.path(script_path, "03_symptomen_analyse.R"))
 
 #tweejaarlijkse analyse
-source(file.path(script_path, "04_TweejaarlijkseAnalyse.R"))
+source(file.path(script_path, "04_tweejaarlijkse_analyse.R"))
 
 #driejaarlijkse analyse
-source(file.path(script_path, "05_DriejaarlijkseAnalyse.R"))
+source(file.path(script_path, "05_driejaarlijkse_analyse.R"))
 
 #langere termijn analyse (Sen slope)
-source(file.path(script_path, "06a_Trendanalyse_Sen (nnv en beschadigd).R"))
+source(file.path(script_path, "06a_trendanalyse_sen.R"))
 
 #langere termijn analyse (Lineair model)
-source(file.path(script_path, "06b_trendanalyse_lmer (nnv en beschadigd).R"))
+source(file.path(script_path, "06b_trendanalyse_lmer.R"))
 
 
 

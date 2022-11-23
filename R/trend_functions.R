@@ -9,12 +9,13 @@
 #' @return data.frame with sen-slope results
 #' @importFrom rkt rkt
 #' @importFrom lme4 lmer
+#' @importFrom stats quantile
 #' @export
 #'
 calc_sen_slope <- function(data, sen_boot = 0){
   if (sen_boot < 1) {
     test <- rkt::rkt(date = data[["Jaar"]], y = data[["mean_value"]], block = data[["PlotNr"]])
-    lmerfit <- summary(lmer(mean_value ~ Jaar + (1|PlotNr), data = data))$coef[,1]
+    lmerfit <- summary(lmer(mean_value ~ Jaar + (1|.data$PlotNr), data = data))$coef[,1]
     return(data.frame(sen_int1 = median(data[["mean_value"]] - test$B * data[["Jaar"]]),
                       sen_slope1 = test$B,
                       tau = test$tau,
@@ -30,7 +31,7 @@ calc_sen_slope <- function(data, sen_boot = 0){
       randplots <- sample(allplots, size = length(allplots), replace = TRUE)
       bd <- NULL
       for (j in 1:length(randplots)) {
-        bd <- rbind(bd, (filter(data, PlotNr == randplots[j]) %>% mutate(PlotNr = j)))
+        bd <- rbind(bd, (filter(data, .data$PlotNr == randplots[j]) %>% mutate(PlotNr = j)))
       }
       senslope[i] <- rkt::rkt(bd[["Jaar"]], y = bd[["mean_value"]], block = bd[["PlotNr"]])$B
       senintercept[i] <- median(bd[["mean_value"]] - senslope[i] * bd[["Jaar"]])
@@ -55,7 +56,7 @@ calc_sen_slope <- function(data, sen_boot = 0){
 #'
 #' @return data.frame with the sen bootstrap results
 #' @importFrom rkt rkt
-#' @importFrom dplyr group_by summarize left_join
+#' @importFrom dplyr group_by summarize left_join select
 #' @export
 #'
 pred_sen_slope <- function(data, sen_boot = 0) {
@@ -65,11 +66,11 @@ pred_sen_slope <- function(data, sen_boot = 0) {
   years <- sort(unique(data[["Jaar"]]))
   n_years <- length(years)
   yearmeans <- data %>%
-    group_by(Jaar) %>%
-    summarize(mean_year = mean(mean_value, na.rm = TRUE),
-              mean_se = sd(mean_value, na.rm = TRUE) / sqrt(n()),
-              mean_lcl = mean_year - 1.96 * mean_se,
-              mean_ucl = mean_year + 1.96 * mean_se)
+    group_by(.data$Jaar) %>%
+    summarize(mean_year = mean(.data$mean_value, na.rm = TRUE),
+              mean_se = sd(.data$mean_value, na.rm = TRUE) / sqrt(n()),
+              mean_lcl = .data$mean_year - 1.96 * .data$mean_se,
+              mean_ucl = .data$mean_year + 1.96 * .data$mean_se)
 
   test <- rkt::rkt(date = data[["Jaar"]],  y = data[["mean_value"]], block = data[["PlotNr"]])
   sen_int <- mean(data[["mean_value"]] - test$B * data[["Jaar"]])
@@ -96,8 +97,8 @@ pred_sen_slope <- function(data, sen_boot = 0) {
     print(paste("unieke proefvlakken:", length(unique(randplots))))
     bootdata <- NULL
     for (j in 1:length(randplots)) {
-      newbootdata <- filter(data, PlotNr == randplots[j]) %>%
-        select(Jaar, PlotNr, mean_value) %>%
+      newbootdata <- filter(data, .data$PlotNr == randplots[j]) %>%
+        select(.data$Jaar, .data$PlotNr, .data$mean_value) %>%
         mutate(PlotNr = j) #om duplicaten te vermijden in plotnummer, waar rkt niet mee overweg kan
       bootdata <- rbind(bootdata, newbootdata)
     }
@@ -107,13 +108,13 @@ pred_sen_slope <- function(data, sen_boot = 0) {
     sen_slopes[i] <- test$B
     predsboot[, paste0('X', i)] <- sen_ints[i] + predsboot$Jaar * sen_slopes[i]
   }
-  mypreds <<- predsboot
-  mysen_slopes <<- sen_slopes
+  mypreds <<- mypreds <- predsboot #to not have NOTE when compiling
+  mysen_slopes <<- mysen_slopes <- sen_slopes
   confboot <- data.frame(
     Jaar = predsboot$Jaar,
-    bootfit = rowMeans(select(predsboot, -Jaar)),
-    boot_lcl = apply(select(predsboot, -Jaar), 1, quantile, 0.025),
-    boot_ucl = apply(select(predsboot, -Jaar), 1, quantile, 0.975),
+    bootfit = rowMeans(select(predsboot, -.data$Jaar)),
+    boot_lcl = apply(select(predsboot, -.data$Jaar), 1, quantile, 0.025),
+    boot_ucl = apply(select(predsboot, -.data$Jaar), 1, quantile, 0.975),
     sen_slope,
     sen_slope_boot = mean(sen_slopes),
     sen_slope_lcl = quantile(sen_slopes, 0.025),
