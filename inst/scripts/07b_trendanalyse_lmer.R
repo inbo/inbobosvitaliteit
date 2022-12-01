@@ -238,7 +238,7 @@ for (sel in names(beschadigdyymodels)) {
 ggplot(plotdata, aes(x = Jaar, y = Pctbeschadigd)) + geom_point() + geom_line() + facet_wrap(~selectie) +
   geom_ribbon(aes(ymin = 100 * lcl, ymax = 100 * ucl), alpha = 0.3, color = NA, fill = INBOtheme::inbo_groen) +
   ylab("Percentage Beschadigd (brms fit)")
-ggsave(file = file.path(outdir, "trend_beschadigd_brmsfit.png"), dpi = fig_dpi, height = fig_height, width = fig_width)
+ggsave(file = file.path(outdir, "trend_beschadigd_brmsfit_ypy.png"), dpi = fig_dpi, height = fig_height, width = fig_width)
 })
 if (inherits(e, "try-error")) stop("MISLUKT: YPY FIGS")
 
