@@ -26,9 +26,19 @@ All necessary scripts are in the repository, but it can be useful to copy the ma
 Now you can run the 00_base_scripts line per line, only the most upper block of code should be updated to use the script
 
 ```
-last_year <- 2022       #last year of data
-years_2 <- c(last_year - 1, last_year) #comparison between 2 years
-years_3 <- c(last_year - 2, last_year - 1, last_year) #between 3 years
-years_trend <- 1995:2022 #period for trend analysis
-setwd(getwd())    #work directory (can be customised eg> setwd("c/:bos/2023")
+#Maak eerst een R project aan voor het rapportagejaar
+#Open Rstudio via het .Rproj bestandje
+
+#check de werkdirectory
+getwd()
+
+last_year <- 2022       #laatst gebruikte jaar in de dataset
+years_2 <- c(last_year - 1, last_year)
+years_3 <- c(last_year - 2, last_year - 1, last_year)
+years_trend <- 1995:2022
+setwd(getwd())    #locatie waar de bestanden moeten komen
+
+plot_base_size <- 10    #standaard tekstgrootte in figuren
+use_local_db_export <- FALSE #gebruik reeds ingeladen data voor dit jaar
+copy_local <- FALSE #optioneel: kopieer alles naar de lokale structuur
 ``` 

@@ -58,14 +58,22 @@ summarize_treedata <-
   }
 
   #error control on input arguments
-  if (!inherits(data, "data.frame")) stop("data should be a data.frame or tibble")
-  if (!(indiv_id %in% colnames(data))) stop("indiv_id should be a column name in data")
-  if (!(detail_id %in% colnames(data))) stop("detail_id should be a column name in data")
-  if (!(meas_id %in% colnames(data))) stop("meas_id should be a column name in data")
-  if (!(meas_id %in% colnames(data))) stop("response should be a column name in data")
-  if (!(all(groups0 %in% colnames(data)))) stop("all vector elements in groups0 should exist as column names in data")
-  if (!(all(groups1 %in% colnames(data)))) stop("all vector elements in groups1 should exist as column names in data")
-  if (!all(groups2 %in% colnames(data))) stop("all elements in groups2 should exist as column names in data")
+  if (!inherits(data, "data.frame"))
+    stop("data should be a data.frame or tibble")
+  if (!(indiv_id %in% colnames(data)))
+    stop("indiv_id should be a column name in data")
+  if (!(detail_id %in% colnames(data)))
+    stop("detail_id should be a column name in data")
+  if (!(meas_id %in% colnames(data)))
+    stop("meas_id should be a column name in data")
+  if (!(meas_id %in% colnames(data)))
+    stop("response should be a column name in data")
+  if (!(all(groups0 %in% colnames(data))))
+    stop("all vector elements in groups0 should exist as column names in data")
+  if (!(all(groups1 %in% colnames(data))))
+    stop("all vector elements in groups1 should exist as column names in data")
+  if (!all(groups2 %in% colnames(data)))
+    stop("all elements in groups2 should exist as column names in data")
 
   #use fixed names
   df <- bind_cols(
@@ -114,16 +122,7 @@ summarize_treedata <-
   df2
 }
 
-
-#grouplist <- list("jaar", c("jaar", "soort"), c("jaar", "soort", "admin"))
-#result <-
-#  bomen_calc_new(testdata, grouplist = grouplist, indiv_id = "boom", meas_id = "meting", detail_id = "deelmeting",
-#                 response = "bladverlies", count_unique = "extra")
-
-
-
-###
-
+################################################################
 
 #' Bereken de tabellen voor het meeste van de jaarlijkse en symptoomanalyses
 #'
@@ -159,7 +158,11 @@ bomen_calc <-
 
     #group kan als 1 vector met groeperingen doorgegeven worden,
     #ofwel als een lijst van alle groeperingen die gebruikt worden
-    if (!is.list(group))  grouplist <- list(group) else  grouplist <- group
+    if (!is.list(group))
+      grouplist <- list(group)
+    else
+      grouplist <- group
+
     if ("Jaar" %in% names(x)) {
       dftotaalBomen <- group_by(x, .data$Jaar) %>%
         summarize(TotaalBomen = length(unique(.data$MetingKey)),
@@ -197,19 +200,22 @@ bomen_calc <-
                                         median(.data[[respons]]))) %>%
         group_by_at(vars(group)) %>%
         na.action() %>%
-        mutate(PctBomen = .data$AantalBomen / sum(.data$AantalBomen) * 100,
-               PctRecords = .data$AantalRecords / sum(.data$AantalRecords) * 100,
-               PctUnique = .data$AantalUnique / sum(.data$AantalUnique) * 100,
-               Set = paste(group, collapse = "."))
+        mutate(
+          PctBomen = .data$AantalBomen / sum(.data$AantalBomen) * 100,
+          PctRecords = .data$AantalRecords / sum(.data$AantalRecords) * 100,
+          PctUnique = .data$AantalUnique / sum(.data$AantalUnique) * 100,
+          Set = paste(group, collapse = "."))
       print(rv[[i]])
     }
-    #bind alle bekomen datasets samen, en sorteer de kolommen zodat de groepvariabelen eerst komen
+    #bind alle bekomen datasets samen,
+    #en sorteer de kolommen zodat de groepvariabelen eerst komen
     bc <- bind_rows(rv)
     if ("Jaar" %in% names(bc)) {
       bc <-
         left_join(bc, dftotaalBomen, by = "Jaar") %>%
-        mutate(PctOfTotaalBomen = .data$AantalBomen / .data$TotaalBomen * 100,
-               PctOfTotaalRecords = .data$AantalRecords / .data$TotaalRecords * 100)
+        mutate(
+          PctOfTotaalBomen = .data$AantalBomen / .data$TotaalBomen * 100,
+          PctOfTotaalRecords = .data$AantalRecords / .data$TotaalRecords * 100)
     }
 
     gvars <- unique(c(unlist(grouplist), group2))
@@ -221,13 +227,14 @@ bomen_calc <-
     if (is.null(bc$SoortType)) bc$SoortType <- NA
 
     bc <- mutate(bc,
-                 selectie = ifelse(!is.na(.data$Soort),
-                                   as.character(.data$Soort),
-                                   ifelse(!is.na(.data$SoortIndeling),
-                                          as.character(.data$SoortIndeling),
-                                          ifelse(!is.na(.data$SoortType),
-                                                 as.character(.data$SoortType),
-                                                 "totaal"))))
+                 selectie =
+                   ifelse(!is.na(.data$Soort),
+                          as.character(.data$Soort),
+                          ifelse(!is.na(.data$SoortIndeling),
+                                 as.character(.data$SoortIndeling),
+                                 ifelse(!is.na(.data$SoortType),
+                                        as.character(.data$SoortType),
+                                        "totaal"))))
 
     if (uniquecount == "do_nothing") {
       bc$AantalUnique <- bc$PctUnique <- NULL
@@ -257,10 +264,16 @@ bomen_calc <-
 #' @return data.frame with wilcoxon results
 #' @export
 #'
-wilcox_table <- function(data, formula = BladverliesNetto ~ LeeftijdsklasseEur,
-                         alphas = c(0.05,0.01,0.001), paired = TRUE,  ...){
-  . <- NULL
-  #Indien er een variabele na | staat, wordt een gepaarde test uitgevoerd op deze variabele
+wilcox_table <- function(data,
+                         formula = BladverliesNetto ~ LeeftijdsklasseEur,
+                         alphas = c(0.05,0.01,0.001),
+                         paired = TRUE,
+                         ...){
+  . <- NULL #om warnings te voorkomen
+
+  #Indien er een variabele na | staat,
+  #wordt een gepaarde test uitgevoerd op deze variabele
+
   #geen gepaarde test
   if (length(formula[[3]]) == 1) {
     paired <- FALSE
@@ -269,19 +282,29 @@ wilcox_table <- function(data, formula = BladverliesNetto ~ LeeftijdsklasseEur,
       mutate_if(datatab, sapply(datatab, is.factor), as.character) %>%
       group_by(!!formula[[3]])
 
-    wt <- try(wilcox.test(formula = formula, data = data, paired = paired,...), silent = TRUE)
-
-    #gepaarde test
+    wt <- try(wilcox.test(formula = formula,
+                          data = data,
+                          paired = paired,...),
+              silent = TRUE)
+  #gepaarde test
   } else {
     paired <- TRUE
     datatab <-
-      select(data, !!formula[[2]],!!formula[[3]][[2]], !!formula[[3]][[3]])
+      select(data,
+             !!formula[[2]],
+             !!formula[[3]][[2]],
+             !!formula[[3]][[3]])
     datatab <-
       mutate_if(datatab, sapply(datatab, is.factor), as.character) %>%
       group_by((!!formula[[3]][[2]]))
 
-    datapair <- spread(datatab, key = !!formula[[3]][[2]], value = !!formula[[2]])
-    wt <- try(wilcox.test(datapair[[2]], datapair[[3]], paired = paired, ...), silent = TRUE)
+    datapair <- spread(datatab,
+                       key = !!formula[[3]][[2]],
+                       value = !!formula[[2]])
+    wt <- try(wilcox.test(datapair[[2]],
+                          datapair[[3]],
+                          paired = paired, ...),
+              silent = TRUE)
   }
 
   #verzamel de waarden van de wilcoxon test
@@ -290,7 +313,13 @@ wilcox_table <- function(data, formula = BladverliesNetto ~ LeeftijdsklasseEur,
   } else {
     W = wt$statistic
     pval <- wt$p.value
-    pind <- ifelse(pval > alphas[1], "n.s.", ifelse(pval > alphas[2], "*", ifelse(pval  > alphas[3], "**", "***")))
+    pind <- ifelse(pval > alphas[1],
+                   "n.s.",
+                   ifelse(pval > alphas[2],
+                          "*",
+                          ifelse(pval  > alphas[3],
+                                 "**",
+                                 "***")))
     paired <- paired
   }
 
@@ -311,7 +340,10 @@ wilcox_table <- function(data, formula = BladverliesNetto ~ LeeftijdsklasseEur,
     grp2 <- sumdata[2,1]
     namen <- names(sumdata)[-1] #eerste naam is de groep
     kolommen <- ncol(sumdata) - 1 #eerste kolom zal wegvallen
-    namen <- paste(rep(c(grp1, grp2), rep(kolommen, 2)), rep(namen,2), sep = "_")
+    namen <- paste(rep(c(grp1, grp2),
+                       rep(kolommen, 2)),
+                   rep(namen,2),
+                   sep = "_")
 
     tabeldata <- cbind(sumdata[1,-1], sumdata[2,-1])
     names(tabeldata) <- namen
@@ -340,6 +372,5 @@ wilcox_table <- function(data, formula = BladverliesNetto ~ LeeftijdsklasseEur,
 
   }
 }
-
 
 ################################################################################
