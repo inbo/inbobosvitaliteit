@@ -3,6 +3,7 @@
 export(bomen_calc)
 export(bosvitaliteit_connect)
 export(calc_sen_slope)
+export(copy_scripts_and_sql_to)
 export(generate_file_structure)
 export(generate_sql_files)
 export(generate_tree_species_data)

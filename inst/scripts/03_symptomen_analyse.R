@@ -1,5 +1,6 @@
 
 ### AFGELEIDE DATASETS
+cat("Aanmaken afgeleide datasets:\n---------------------\n\n")
 e <- try({
   #! Soortinfo en Treeinfo combineren
   #Let op, er komen hier dubbele bomen voor, wegens verschillende oorzaken,
@@ -33,6 +34,7 @@ if (inherits(e, "try-error")) stop("MISLUKT: MAKEN AFGELEIDE DATASETS")
 ### 2.0 Aantal dode bomen / Aantal zonder symptomen / Aantal met meerdere symptomen
 
 #2.0a: Aantal dode bomen
+cat("Aanmaken dode bomen:\n---------------------\n\n")
 e <- try({
 bomen_calc(dfTrees, group = c("Jaar"), group2 = c("Dood"))
 
@@ -46,6 +48,7 @@ dfSA %>%
 if (inherits(e, "try-error")) warning("MISLUKT: AANTAL DODE BOMEN")
 
 #2.0b: Aantal bomen zonder, met en meerdere (unieke) symptomen (dode bomen worden weggelaten)
+cat("Symptoomaantallen:\n---------------------\n\n")
 e <- try({
 group_by(dfSA, Jaar, PlotNr, BoomNr) %>%
   summarize(AantalSymptomen = length(unique(SymptoomCode[!(AangetastDeelCode %in% c(0,4))])),
@@ -75,6 +78,8 @@ if (inherits(e, "try-error")) warning("MISLUKT: SYMPTOOMAANTALLEN")
 
 ### 2.1 Aantal bomen: onderdeel boom / onderdeel boom symptoom / stam_spec_symptoom_soort
 
+cat("Aantal boomen met symptomen op een bepaald onderdeel:\n",
+    "-----------------------------------------------------\n\n")
 e <- try({
 #2.1a: Aantal bomen met symtoom op een bepaald onderdeel
 dfa <- bomen_calc(dfSA, group = c("Jaar", "OnderdeelBoomCat"), group2 = c("AangetastDeel"), uniquecount = "SymptoomCode")
@@ -114,7 +119,8 @@ if (inherits(e, "try-error")) warning("MISLUKT: SYMPTOMEN PER ONDERDEEL")
 ### 2.2 Aandeel bomen symptoom soort (2.1 in percentages?) / top 5 symptomen per soort
 
 #2.2a Berekening van percentages, geen rekening houden met onderdeelboomcat
-
+cat("Berekenen percentages zonder rekening te houdem met boomonderdeel:\n",
+    "------------------------------------------------------------------\n\n")
 e <- try({
 bomen_calc(dfSA, normal_groups, c("SymptoomCode", "Symptoom"))
 
@@ -128,6 +134,7 @@ if (inherits(e, "try-error")) warning("MISLUKT: SBOMEN PER SYMPTOOM")
 ### 2.3 Aandeel bomen oorzaak / aandeel oorzaken symptoom (hier weer de dode bomen en bomen zonder symptomen inclusief)
 
 #2.3a
+cat("Symptoomoorzaken:\n---------------------\n\n")
 e <- try({
 bomen_calc(dfSA, c("Jaar"), c("SymptoomOorzaakGroepNaam"), uniquecount = "SymptoomOorzaakCode") %>%
   select(SymptoomOorzaakGroepNaam, AantalBomen, PctOfTotaalBomen) %>%
@@ -141,6 +148,7 @@ bomen_calc(dfSA, normal_groups,
 if (inherits(e, "try-error")) warning("MISLUKT: SYMPTOOMOORZAAK")
 
 ### 3.1 Oorzaak dode bomen (1 boom heeft meerdere oorzaken, daarom er hier 19 ipv 18 records zijn)
+cat("Oorzaak dode bomen:\n---------------------\n\n")
 e <- try({
 group_by(dfDead, Jaar, SymptoomOorzaakCode, SymptoomOorzaak, SymptoomOrganisme) %>%
   summarize(Aantal = n()) %>%
@@ -150,6 +158,7 @@ if (inherits(e, "try-error")) warning("MISLUKT: OORZAAK DODE BOMEN")
 
 
 ### 3.4 Aandeel bomen aangetastdeel soort
+cat("Aandeel bomen aangepast deel:\n---------------------\n\n")
 e <- try({
 bomen_calc(dfSA, normal_groups, c("AangetastDeelCode"))
 
@@ -168,6 +177,7 @@ if (inherits(e, "try-error")) warning("MISLUKT: AANGETAST DEEL")
 
 
 ### 3.5 Top 5 oorzaken per soort
+cat("Top 5 oorzaken per soort:\n---------------------\n\n")
 e <- try({
 bomen_calc(dfSA, c("Jaar", "SymptoomOorzaak")) %>%
   arrange(Jaar, desc(AantalBomen))
@@ -183,6 +193,8 @@ if (inherits(e, "try-error")) warning("MISLUKT: SYMPTOMEN EXTENT")
 
 ### 3.7 Aandeel bomen met verkleuring oorzaak organisme / bladvraat oorzaak organisme
 
+cat("Aandeel bomen met oorzaak met verkleuring en bladvraat :\n",
+    "--------------------------------------------------------\n\n")
 e <- try({
 right_join(
   bomen_calc(dfSA, normal_groups, "SymptoomAbnormaalVerkleurd") %>%
@@ -202,6 +214,7 @@ if (inherits(e, "try-error")) warning("MISLUKT: ABNORMAAL VERKLEURD")
 
 #3.7a Verkleuring Oorzaak Organisme
 
+cat("Verkleuring oorzaak organisme:\n------------------------\n\n")
 e <- try({
 bomen_calc(filter(dfSA, SymptoomCode %in% c(2,3)), normal_groups,
            c("Symptoom", "SymptoomOorzaakCode", "SymptoomOrganisme", "SymptoomExtent"))
@@ -219,7 +232,7 @@ bomen_calc(filter(dfSA, SymptoomCode %in% c(2,3), SymptoomOorzaakCode %in% 300:3
 if (inherits(e, "try-error")) warning("MISLUKT: VERKLEURING SCHIMMELS")
 
 #3.7b Bladvraat oorzaak organisme
-
+cat("Bladvraat oorzaak organisme:\n---------------------\n\n")
 e <- try({
 bomen_calc(filter(dfSA, SymptoomCode %in% c(1)), normal_groups, "SymptoomExtent") %>%
   left_join(dfTotaalBomen) %>%
@@ -236,10 +249,12 @@ bomen_calc(filter(dfSA, SymptoomCode %in% c(1)), lapply(normal_groups, c, c("Sym
 if (inherits(e, "try-error")) warning("MISLUKT: INSECTENAANTASTING VERDELING")
 
 ##---> FOUTMELDING MET DATA EIND 2022 (datasets zonder rijen)
+cat("Insecten op stam:\n---------------------\n\n")
 e <- try({
   bomen_calc(filter(dfSA, OnderdeelBoomCat == "Stam",
                   SymptoomOorzaakGroep == 200),
-           lapply(normal_groups, c, "OnderdeelBoomCat"), "SymptoomExtent") %>%
+           lapply(normal_groups, c, "OnderdeelBoomCat"), "SymptoomExtent",
+           na.action = na.pass) %>%
   left_join(dfTotaalBomen) %>%
   mutate(Pct = AantalBomen / TotaalAantalBomen * 100) %>%
   arrange(volgorde) %>%
@@ -251,6 +266,7 @@ if (inherits(e, "try-error")) warning("MISLUKT: INSECTEN OP STAM")
 ### 3.8 aandeel bomen met kroonsterfte oorzaak organisme / kroonsterfte aangetast deel soort extent
 
 #3.8a
+cat("Aantal bomen me kroonsterfte:\n--------------------------\n\n")
 e <- try({
 bomen_calc(filter(dfSA, SymptoomCode %in% c(14)), lapply(normal_groups, c, c("Symptoom", "SymptoomOorzaakCode", "SymptoomOrganisme")),
            "SymptoomExtent")
@@ -280,16 +296,18 @@ if (inherits(e, "try-error")) warning("MISLUKT: KROONSTERFTE")
 ###     aandeel eiken met teken van insecten proefvlak extent
 
 #3.9a Insecten
+cat("Insecten onderdeel boom:\n---------------------\n")
 e <- try({
 bomen_calc(filter(dfSA, SymptoomCode %in% c(1)), lapply(normal_groups, c, c("SymptoomCode", "OnderdeelBoomCat")), group2 = "SymptoomExtent")
 
 #3.9b bladvreters (oorzaak)
-
+  cat("Bladvraat onderdeel boom:\n---------------------\n")
 bomen_calc(filter(dfSA, SymptoomOorzaakCode %in% c(210), SymptoomCode %in% c(1, 10)),
            lapply(normal_groups, c, c("OnderdeelBoomCat")), "SymptoomExtent")
 
 #3.9c schimmelaantasting proefvlak soort
 
+cat("Schimmel onderdeel boom per proefvlak:\n------------------------------\n")
 bomen_calc(filter(dfSA, SymptoomOorzaakCode %in% c(300:399)),
            c("Jaar", "PlotNr","SPEC_DES", "SymptoomOrganisme"), "SymptoomExtent")
 
@@ -301,6 +319,7 @@ bomen_calc(filter(dfSA, SymptoomOorzaakCode %in% c(300:399)),
 
 
 #3.9d aandeel eiken met bladvraat proefvlak extent
+cat("Aandeel eiken met bladvraat per proefvlak:\n---------------------\n")
 
 bomen_calc(filter(dfSA,
                   substring(SPEC_DES, 1,7) == "Quercus",
@@ -311,6 +330,7 @@ bomen_calc(filter(dfSA,
 
 #3.9e aandeel bomen met symptomen 10 en 11
 
+cat("Aanfeel bomen met symptomen 10 en 11:\n---------------------\n")
 bomen_calc(dfSA, c("Jaar", "SymptoomCode")) %>%
   filter(SymptoomCode %in% c(10,11))
 
@@ -326,6 +346,9 @@ bomen_calc(filter(dfSA, SymptoomCode %in% c(10,11)),
 
 #3.9h aandeel eiken met teken van insecten per proefvlak extent (KOMT NIET OVEREEN MET VOORBEELD)
 
+cat("Aandeel eiken met teken van insecten per proefvlak:\n",
+    "---------------------------------------------------\n\n")
+
 bomen_calc(filter(dfSA, SymptoomCode %in% c(10)),
            c("Jaar", "PlotNr", "SPEC_DES"),
            "SymptoomExtent")
@@ -335,6 +358,7 @@ if (inherits(e, "try-error")) warning("MISLUKT: SYSTOOMEXTENT PER PROEFVLAK")
 ### 3.10 aandeel dennen met sphaeropsis / sphaeropsis aangetaste deel symtoom
 
 #3.10a aandeel dennen met SPhaeropsis
+cat("Aandeel dennen met Sphaeropsis:\n---------------------------------\n\n")
 
 e <- try({
 bomen_calc(filter(dfSA, SoortType == "naaldbomen"), c("Jaar", "SPEC_DES"), "SymptoomOrganisme") %>%
@@ -352,6 +376,7 @@ bomen_calc(filter(dfSA, SoortType == "naaldbomen"),
 if (inherits(e, "try-error")) warning("MISLUKT: SPHAEROPSIS")
 
 ### X. aangetaste delen symptoom boom
+cat("Aangetaste delen symptoom boom:\n--------------------------------\n\n")
 
 e <- try({
 bomen_calc(filter(dfSA, SoortType == "naaldbomen"), c("SoortType", "AangetastDeel"), "Symptoom")
@@ -359,6 +384,7 @@ bomen_calc(filter(dfSA, SoortType == "naaldbomen"), c("SoortType", "AangetastDee
 if (inherits(e, "try-error")) warning("MISLUKT: AANGETASTE DELEN PER SOORT")
 
 ### andere
+cat("Andere symptomen:\n---------------------\n\n")
 
 #Hars/Slijmuitvloei
 e <- try({

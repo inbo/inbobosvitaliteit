@@ -1,4 +1,30 @@
 
+
+#' Kopieer scripts, sql en csv data bestanden naar lokale directory
+#'
+#' @param target directory waarin de files weggeschreven worden
+#'
+#' @return lokale kopie van scripts en sql en csv data in de scripts en data directory onder de target
+#' @export
+#'
+copy_scripts_and_sql_to <- function(target) {
+  lib_dir <- system.file(package = "inbobosvitaliteit")
+  script_dir <- file.path(target, "scripts")
+  sql_dir <- file.path(target, "data")
+  if(!dir.exists(script_dir)) dir.create(script_dir)
+  if(!dir.exists(sql_dir)) dir.create(sql_dir)
+  script_files <- list.files(file.path(lib_dir, "scripts"))
+  for (file in script_files) {
+    file.copy(file.path(lib_dir, "scripts", file), script_dir)
+  }
+  data_files <- list.files(file.path(lib_dir, "extdata"))
+  for (file in data_files) {
+    file.copy(file.path(lib_dir, "extdata", file), sql_dir)
+  }
+}
+
+###############################################################
+
 #' Installeer benodigde packages
 #'
 #' @return installed libraries
@@ -70,6 +96,7 @@ generate_file_structure <- function(root = getwd()) {
 #' @param fig_height standaard figuurhoogote in inch
 #' @param fig_dpi standaard resolutie voor de figuren
 #' @param sen_boot aantal bootstrap samples om betrouwbaarheidsintervallen op de sen slope te bepalen, indien 0 dan wordt geen bootstrap uitgevoerd
+#' @param sen_seed chosen seed for the sen calculations, when empty a random seed is chosen
 #' @param lmer_boot aantal bootstrap samples om  betrouwbaarheidsintervallen voor de lineaire modellen te bepalen, indien 0 dan wordt geen bootstrap uitgevoerd
 #'
 #' @return maakt verschillende golbale variabelen aan: jaarkeuze, pathkeuze, tweejaarlijks, driejaarlijks, meerjaarlijks, jaren_natuurindicatoren, outdir, connect_via_db, normal_groups, all_groups, extended_groups, groups_multiyear, extra_groups
@@ -85,8 +112,11 @@ init_session <-
            fig_height = 5,
            fig_dpi = 300,
            sen_boot = 200,
-           lmer_boot = 200) {
+           sen_seed = NULL,
+           lmer_boot = 200
+           ) {
 
+    if (is.null(sen_seed)) sen_seed <- sample(1:1000000,1)
     #globale variabelen
     fig_width <<- fig_width
     fig_height <<- fig_height
@@ -99,6 +129,9 @@ init_session <-
     connect_via_db <<- connect_via_db <- connect_via_db
     outdir <<- outdir
     jaren_natuurindicatoren <<- jaren_natuurindicatoren <- first_year:jaarkeuze
+    sen_seed <<- sen_seed
+    sen_boot <<- sen_boot
+    lmer_boot <<- lmer_boot
 
     #extra variabelen (created globally)
 
