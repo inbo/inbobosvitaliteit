@@ -1,8 +1,15 @@
+
+
+##############################
+#SEN SLOPE
+##############################
+
 ####################################################################################################
 
 ### SEN SLOPE GEMIDDELD BLADVERLIES
 
 ###################################################################################################
+library(rkt)
 
 e <- try({
   set.seed(sen_seed)
@@ -27,6 +34,9 @@ e <- try({
       select(-data) %>%
       unnest(cols = senresult)) %>%
     write.csv2(file = file.path(outdir, "trend_senslopes_rkt.csv"))
+})
+if (inherits(e, "try-error")) stop("MISLUKT: SEN ALGEMEEN")
+
 
 
 
@@ -72,11 +82,11 @@ e <- try({
       xlab("Jaar") + ylab("Bladverlies (%) Sen-slope") +
       ggtitle(i) + ylim(0,ymax)
     print(p)
-    file = file.path(outdir, paste0("trend_nnv_", i, ".png"))
+    file = file.path(outdir, paste0("trend_sen_nnv_", i, ".png"))
     ggsave(plot = p, filename = file, dpi = fig_dpi, width = fig_width, height = fig_height)
   }
 })
-if (inherits(e, "try-error")) stop("MISLUKT: SEN GEMIDDELD BLADVERLIES")
+if (inherits(e, "try-error")) warning("MISLUKT: SEN GEMIDDELD BLADVERLIES")
 
 
 ###########
@@ -109,7 +119,6 @@ e <- try({
     load(file =  file.path(outdir, "interim", paste0("dfSenbesch_trend_nnv", n_sen_boot, ".Rdata")))
   }
 
-
   ##load(file = "dfSen_trend_beschadigd200.Rdata")
 
 
@@ -125,8 +134,8 @@ e <- try({
       xlab("Jaar") + ylab("Aandeel Beschadigd (%)") + ggtitle(i) + ylim(0,ymax)
     print(p)
 
-    file = file.path(outdir, paste0("trend_pctbeschadigd_", i, ".png"))
+    file = file.path(outdir, paste0("trend_sen_pctbeschadigd_", i, ".png"))
     ggsave(plot = p, filename = file, dpi = fig_dpi, width = fig_width, height = fig_height)
   }
 })
-if (inherits(e, "try-error")) stop("MISLUKT: SEN BESCHADIGD")
+if (inherits(e, "try-error")) warning("MISLUKT: SEN BESCHADIGD")

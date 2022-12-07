@@ -16,7 +16,13 @@ setwd(getwd())    #locatie waar de bestanden moeten komen
 plot_base_size <- 10    #standaard tekstgrootte in figuren
 use_local_db_export <- FALSE #gebruik reeds ingeladen data voor dit jaar
 copy_local <- FALSE #optioneel: kopieer alles naar de lokale structuur
+
+#Eenmalig uitvoeren, duurt enkele uren
+#alles wordt bewaard in de output/interim directory, dus eenmalig is genoeg
 recalc_sen <- FALSE #eenmalig wel op TRUE, duurt lang
+
+#Eenmalig uitvoeren, duurt ongeveer 3 uur
+#alles wordt bewaard in de output/interim directory, dus eenmalig is genoeg
 recalc_lmer <- FALSE #eenmalig wel op TRUE, duurt een hele poos
 
 #######################################################################
@@ -34,6 +40,7 @@ remotes::install_github("inbo/inbobosvitaliteit", dependencies = TRUE)
 inbobosvitaliteit::install_necessary_packages()
 
 library(tidyverse)
+#library(dplyr);library(ggplot2);library(readr);library(tidyr);library(purrr)
 library(DBI)
 library(inbobosvitaliteit)
 
@@ -75,7 +82,8 @@ dim(dfTrees)
 ##symptomen laatste jaar
 dfSymptoms <- get_symptomdata(conn,
                               jaar = last_year,
-                              local = use_local_db_export)
+                              local = use_local_db_export,
+                              show_query = TRUE)
 dim(dfSymptoms)
 
 ##bomen de laatste 2 jaar
@@ -110,6 +118,7 @@ dim(dfVolgorde)
 
 
 ### UITVOEREN ANALYSES
+script_path <- file.path(system.file(package = "inbobosvitaliteit"), "scripts")
 
 #jaarlijkse analyse
 source(file.path(script_path, "02_jaarlijkse_analyse.R"))
@@ -127,15 +136,7 @@ source(file.path(script_path, "05_driejaarlijkse_analyse.R"))
 source(file.path(script_path, "06_trendanalyse_data.R"))
 
 #langere termijn analyse (Sen slope)
-source(file.path(script_path, "07a_trendanalyse_sen.R"))
+source(file.path(script_path, "07a_trendanalyse_sen_bootstrap.R"))
 
 #langere termijn analyse (Lineair model)
-source(file.path(script_path, "07b_trendanalyse_lmer.R"))
-
-
-
-
-
-
-
-
+source(file.path(script_path, "07b_trendanalyse_lmer_bootstrap.R"))

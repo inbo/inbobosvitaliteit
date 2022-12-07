@@ -47,19 +47,19 @@ dfTrendSummary <-
 ggplot(dfTrendSummary %>% filter(Set == "Jaar"),
        aes(x = Jaar, y = mean_value, ymin = lcl, ymax = ucl)) +
   geom_line() + geom_point() + geom_errorbar()  + ylab("Bladverlies (%)")
-ggsave(file = file.path(outdir, "trend_bladverlies_ruwedata_allebomen.png"))
+ggsave(file = file.path(outdir, "trend_ruwedata_bladverlies_allebomen.png"))
 
 ggplot(dfTrendSummary %>% filter(Set == "Jaar.SoortIndeling"),
        aes(x = Jaar, y = mean_value, color = SoortIndeling,
            ymin = lcl, ymax = ucl)) +
   geom_line() + geom_point() + geom_errorbar()  + ylab("Bladverlies (%)")
-ggsave(file = file.path(outdir, "trend_bladverlies_ruwedata_Soortindeling.png"))
+ggsave(file = file.path(outdir, "trend_ruwedata_bladverlies_Soortindeling.png"))
 
 ggplot(dfTrendSummary %>% filter(Set == "Jaar.SoortType"),
        aes(x = Jaar, y = mean_value, color = SoortType,
            ymin = lcl, ymax = ucl)) +
   geom_line() + geom_point() + geom_errorbar()  + ylab("Bladverlies (%)")
-ggsave(file = file.path(outdir, "trend_bladverlies_ruwedata_SoortType.png"))
+ggsave(file = file.path(outdir, "trend_ruwedata_bladverlies_SoortType.png"))
 
 
 
@@ -83,7 +83,7 @@ ggplot(dfTrendBeschadigdTotSmry,
   ylab("Beschadigde proefvlakken (%)")
 ggsave(file =
          file.path(outdir,
-                   "trend_beschadigde_proefvlakken_ruwedata_allebomen.png" ))
+                   "trend_ruwedata_beschadigde_proefvlakken_allebomen.png" ))
 
 ###
 
@@ -108,7 +108,7 @@ ggplot(dfTrendBeschadigdTypeSmry,
   ylab("Beschadigde proefvlakken (%)")
 ggsave(file =
          file.path(outdir,
-                   "trend_beschadigde_proefvlakken_ruwedata_type.png" ))
+                   "trend_ruwedata_beschadigde_proefvlakken_type.png" ))
 
 
 ###
@@ -134,7 +134,7 @@ ggplot(dfTrendBeschadigdSoortSmry,
   ylab("Beschadigde proefvlakken (%)")
 ggsave(file =
          file.path(outdir,
-                   "trend_beschadigde_proefvlakken_ruwedata_soort.png" ))
+                   "trend_ruwedata_beschadigde_proefvlakken_soort.png" ))
 
 
 ###
@@ -144,4 +144,5 @@ dfTrendBeschadigd <- bind_rows(dfTrendBeschadigdTot,
                                dfTrendBeschadigdType)
 })
 if (inherits(e, "try-error")) stop("MISLUKT: DATA VOORBEREIDING")
+
 

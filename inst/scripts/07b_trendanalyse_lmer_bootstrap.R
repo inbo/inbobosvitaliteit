@@ -3,7 +3,8 @@
 ## Voor Geert: dit script zal je zelf waarschijnlijk niet kunnen uitvoeren, omdat ik hiervoor brms gebruik, wat heel wat extra installatie vergt.
 e <- try({
 library(brms)
-library(tidyverse)
+library(ggplot2)
+library(dplyr)
 
 set.seed(sen_seed) #gebruik hetzelfde seed als voor de sen
 
@@ -39,9 +40,6 @@ dfTrendBeschadigdSoort <-
 
 dfTrendBeschadigd <- bind_rows(dfTrendBeschadigdTot, dfTrendBeschadigdSoort, dfTrendBeschadigdType)
 
-############################################################################################
-
-## Analyse met de volledige dataset duurt te lang via brms, daarom gekozen om te werken met de aggregatie per plot
 
 
 dfBRMSbasis  <- bomen_calc(x = dfTreesTrend,
@@ -51,6 +49,9 @@ dfBRMSbasis  <- bomen_calc(x = dfTreesTrend,
 if (inherits(e, "try-error")) stop("MISLUKT: DATA LADEN VOOR LMER")
 
 ################################################################################
+################################################################################
+
+## Analyse met de volledige dataset duurt te lang via brms, daarom gekozen om te werken met de aggregatie per plot
 
 e <- try({
 nnvmodels <- list()
@@ -70,10 +71,14 @@ if (recalc_lmer) {
   }
   save(nnvmodels, file = file.path(outdir, "interim", "nnv_brms_models.Rdata"))
 }
+#else {
+#  load( file.path(outdir,"interim", "nnv_brms_models.Rdata"))
+#}
 
 })
 if (inherits(e, "try-error")) stop("MISLUKT: LMER BLADVERLIES")
 
+#load saved data
 e <- try({
 load(file = file.path(outdir, "interim", "nnv_brms_models.Rdata"))
 })
@@ -147,7 +152,7 @@ save(beschadigdmodels, file = file.path(outdir, "interim", "beschadigd_brms_mode
 if (inherits(e, "try-error"))  stop("MISLUKT: LMER BESCHADIGD")
 
 e <- try({
-load(file = paste0(outdir, "interim", "beschadigd_brms_models.Rdata"))
+load(file = file.path(outdir, "interim", "beschadigd_brms_models.Rdata"))
 })
 if (inherits(e, "try-error")) stop("MISLUKT: LOADING LMER BESCHADIGD")
 
@@ -187,6 +192,7 @@ for (sel in names(beschadigdmodels)) {
     geom_line(data =  confs, aes(x = Jaar, y = fit), inherit.aes = FALSE, color = INBOtheme::inbo_groen) +
     geom_ribbon(data = confs, aes(x = Jaar, ymin = lcl, ymax = ucl), inherit.aes = FALSE, alpha = 0.3, fill = INBOtheme::inbo_groen) +
     ylab("Percentage beschadigd (brms)") + ylim(0,100) + ggtitle(sel)
+
   ggsave(p, file = file.path(outdir, paste0("trend_pctbeschadigd_",sel, "_brms.png")), dpi = fig_dpi, width = fig_width, height = fig_height)
 
 }
@@ -206,15 +212,17 @@ dfBRMS_schade_yy  <- bomen_calc(x = dfTreesTrend,
   mutate(fJaar = factor(Jaar, levels = meerjaarlijks),
          totaal = onbeschadigd + beschadigd)
 
-beschadigdyymodels <- NULL
-for (sel in unique(dfBRMS_schade_yy$selectie)) {
-  dfBrmsschade <- filter(dfBRMS_schade_yy, selectie == sel)
-  model <- try(brm(beschadigd| trials(totaal) ~ 0 + fJaar + (1|PlotNr), data = dfBrmsschade, family = binomial(),
-                   iter = 10000, thin = 20, chains = 3, cores = 3))
-  beschadigdyymodels[[sel]] <- model
-}
+if (recalc_sen) {
+  beschadigdyymodels <- NULL
+  for (sel in unique(dfBRMS_schade_yy$selectie)) {
+    dfBrmsschade <- filter(dfBRMS_schade_yy, selectie == sel)
+    model <- try(brm(beschadigd| trials(totaal) ~ 0 + fJaar + (1|PlotNr), data = dfBrmsschade, family = binomial(),
+                     iter = 10000, thin = 20, chains = 3, cores = 3))
+    beschadigdyymodels[[sel]] <- model
+  }
 
-save(beschadigdyymodels, file = file.path(outdir, "interim", "beschadigd_brms_factorJaar.Rdata"))
+  save(beschadigdyymodels, file = file.path(outdir, "interim", "beschadigd_brms_factorJaar.Rdata"))
+}
 })
 if (inherits(e, "try-error")) stop("MISLUKT: YPY BESCHADIGDE  BOMEN")
 

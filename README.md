@@ -41,4 +41,12 @@ setwd(getwd())    #locatie waar de bestanden moeten komen
 plot_base_size <- 10    #standaard tekstgrootte in figuren
 use_local_db_export <- FALSE #gebruik reeds ingeladen data voor dit jaar
 copy_local <- FALSE #optioneel: kopieer alles naar de lokale structuur
+
+#Eenmalig uitvoeren, duurt enkele uren
+#alles wordt bewaard in de output/interim directory, dus eenmalig is genoeg
+recalc_sen <- FALSE #eenmalig wel op TRUE, duurt lang
+
+#Eenmalig uitvoeren, duurt ongeveer 3 uur
+#alles wordt bewaard in de output/interim directory, dus eenmalig is genoeg
+recalc_lmer <- FALSE #eenmalig wel op TRUE, duurt een hele poos
 ``` 

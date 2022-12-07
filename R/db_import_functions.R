@@ -67,7 +67,14 @@ get_treedata <- function(channel,
                          local = FALSE
                          ) {
   if (local) {
-    return(readRDS(load_path))
+    if (length(jaar) == 1)
+      return(readRDS(load_path))
+    if (length(jaar) == 2)
+      return(readRDS(gsub(".RDS", "_2.RDS", load_path)))
+    if (length(jaar) == 3)
+      return(readRDS(gsub(".RDS", "_3.RDS", load_path)))
+    if (length(jaar) > 3)
+      return(readRDS(gsub(".RDS", "_trend.RDS", load_path)))
   }
 
   if (sqlfile == "package") {

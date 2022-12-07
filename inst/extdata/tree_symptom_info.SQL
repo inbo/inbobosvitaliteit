@@ -21,7 +21,7 @@ select
       left join tblWaarnemingMeting m on m.WRME_WRNG_ID = w.WRNG_ID
       left join tblWaarnemingMetingSymptoom sym on sym.WMSY_WRME_ID = m.WRME_ID
       left join tblBoom b on b.BOOM_ID = m.WRME_BOOM_ID
-      left join tblSoort s on s.SPEC_ID = b.BOOM_SPEC_I
+      left join tblSoort s on s.SPEC_ID = b.BOOM_SPEC_ID
       left join cdeAangetastDeel cad on cad.ATDE_CDE = sym.WMSY_ATDE_CDE
       left join cdeSymptoomSpecificatie css on css.SYSP_CDE = sym.WMSY_SYSP_CDE
       left join cdeSymptoom csym on csym.SYTO_CDE = sym.WMSY_SYTO_CDE
