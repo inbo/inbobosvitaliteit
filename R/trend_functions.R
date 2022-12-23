@@ -110,7 +110,7 @@ pred_sen_slope <- function(data, sen_boot = 0) {
 
 
   for (i in 1:sen_boot) {
-    print(paste("iter:", i))
+    print(paste("iter:", i, "/", sen_boot))
     randplots <- sample(allplots, size = length(allplots), replace = TRUE)
     print(paste("unieke proefvlakken:", length(unique(randplots))))
     bootdata <- NULL

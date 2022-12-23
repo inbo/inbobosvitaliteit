@@ -12,18 +12,23 @@ years_2 <- c(last_year - 1, last_year)
 years_3 <- c(last_year - 2, last_year - 1, last_year)
 years_trend <- 1995:2022
 setwd(getwd())    #locatie waar de bestanden moeten komen
+install_base_script() #maak een lokale kopie van het basissscript
 
 plot_base_size <- 10    #standaard tekstgrootte in figuren
 use_local_db_export <- FALSE #gebruik reeds ingeladen data voor dit jaar
 copy_local <- FALSE #optioneel: kopieer alles naar de lokale structuur
 
+#Berekening ootstrap op sen-slope
 #Eenmalig uitvoeren, duurt enkele uren
 #alles wordt bewaard in de output/interim directory, dus eenmalig is genoeg
 recalc_sen <- FALSE #eenmalig wel op TRUE, duurt lang
+sen_boot <- 200 #hoeveelheid samples voor sen-bootstrap (standaard 200)
 
+###Berekening mixed effect modellen
 #Eenmalig uitvoeren, duurt ongeveer 3 uur
 #alles wordt bewaard in de output/interim directory, dus eenmalig is genoeg
 recalc_lmer <- FALSE #eenmalig wel op TRUE, duurt een hele poos
+lmer_samples <- 10000 #hoeveelheid iteratiestappen brm (standaard 10000)
 
 #######################################################################
 
