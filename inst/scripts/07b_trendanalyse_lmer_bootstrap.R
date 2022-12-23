@@ -66,7 +66,7 @@ if (recalc_lmer) {
       brm(logBladverlies ~ JaarC + (1|PlotNr),
           data = dfBrms, family = gaussian(),
           autocor = cor_ar(~ JaarC|PlotNr, p = 1), #te brede intervallen
-          iter = 10000, thin = 20, chains = 3, cores = 3))
+          iter = lmer_samples, thin = 20, chains = 3, cores = 3))
     nnvmodels[[sel]] <- model
   }
   save(nnvmodels, file = file.path(outdir, "interim", "nnv_brms_models.Rdata"))
@@ -143,7 +143,7 @@ if (recalc_lmer) {
       mutate(totaal = beschadigd + onbeschadigd)
 
     model <- try(brm(beschadigd| trials(totaal) ~ JaarC + (1|PlotNr), data = dfBrmsschade, family = binomial(),
-                     iter = 10000, thin = 20, chains = 3, cores = 3))
+                     iter = lmer_samples, thin = 20, chains = 3, cores = 3))
     beschadigdmodels[[sel]] <- model
   }
 }
@@ -217,7 +217,7 @@ if (recalc_sen) {
   for (sel in unique(dfBRMS_schade_yy$selectie)) {
     dfBrmsschade <- filter(dfBRMS_schade_yy, selectie == sel)
     model <- try(brm(beschadigd| trials(totaal) ~ 0 + fJaar + (1|PlotNr), data = dfBrmsschade, family = binomial(),
-                     iter = 10000, thin = 20, chains = 3, cores = 3))
+                     lmer_samples = 10000, thin = 20, chains = 3, cores = 3))
     beschadigdyymodels[[sel]] <- model
   }
 

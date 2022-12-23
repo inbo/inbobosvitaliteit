@@ -11,32 +11,6 @@
 ###################################################################################################
 library(rkt)
 
-e <- try({
-  set.seed(sen_seed)
-
-  #dfSenResult bevat de samenvattende tabel per jaar en per plotnummer
-
-  #deze worden als basis gebruikt voor de  sen slope uit het rkt package
-  dfSenResult <- bomen_calc(x = dfTreesTrend,
-                            group = lapply(normal_groups, c, "PlotNr"),
-                            respons = "BladverliesNetto")
-
-
-  my_rkt <- function(data){
-    model <- rkt(date = data$Jaar, y = data$gemNNV, block = data$PlotNr)
-    data.frame(sen_slope = model$B, kendall_tau = model$tau, p_value = model$sl)
-  }
-
-  (sen_slopes <- dfSenResult %>%
-      select(Jaar, gemNNV = mean_value, PlotNr, selectie) %>%
-      nest(data = c(Jaar, gemNNV, PlotNr)) %>%
-      mutate(senresult = map(.x = data, .f = my_rkt)) %>%
-      select(-data) %>%
-      unnest(cols = senresult)) %>%
-    write.csv2(file = file.path(outdir, "trend_senslopes_rkt.csv"))
-})
-if (inherits(e, "try-error")) stop("MISLUKT: SEN ALGEMEEN")
-
 
 
 
@@ -50,7 +24,7 @@ e <- try({
         filter(selectie == i) %>%
         ungroup() %>%
         transmute(selectie, Jaar = Jaar - meerjaarlijks[1], PlotNr, mean_value)
-      print(i)
+      cat("\n\nBerekeningen sen-slope bladverlies voor: ", i, "\n-----------------------\n")
       print(dim(sendata))
       tmp <- pred_sen_slope(sendata, sen_boot = sen_boot)
       tmp$Jaar <- tmp$Jaar + meerjaarlijks[1]
@@ -104,7 +78,7 @@ e <- try({
         ungroup() %>%
         transmute(selectie, Jaar = Jaar - meerjaarlijks[1],
                   PlotNr, mean_value = PctBeschadigd)
-      print(i)
+      cat("\n\nBerekeningen sen-slope beschadigde bomen voor: ", i, "\n-----------------------\n")
       print(dim(sendataB))
       tmp <- NULL
       try({

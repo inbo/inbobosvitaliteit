@@ -13,9 +13,7 @@ init_session(
   fig_width = 7,
   fig_height = 5,
   fig_dpi = 300,
-  sen_boot = 200,
-  sen_seed = NULL,
-  lmer_boot = 200
+  sen_seed = NULL
 )
 }
 \arguments{
@@ -35,11 +33,7 @@ init_session(
 
 \item{fig_dpi}{standaard resolutie voor de figuren}
 
-\item{sen_boot}{aantal bootstrap samples om betrouwbaarheidsintervallen op de sen slope te bepalen, indien 0 dan wordt geen bootstrap uitgevoerd}
-
 \item{sen_seed}{chosen seed for the sen calculations, when empty a random seed is chosen}
-
-\item{lmer_boot}{aantal bootstrap samples om  betrouwbaarheidsintervallen voor de lineaire modellen te bepalen, indien 0 dan wordt geen bootstrap uitgevoerd}
 }
 \value{
 maakt verschillende golbale variabelen aan: jaarkeuze, pathkeuze, tweejaarlijks, driejaarlijks, meerjaarlijks, jaren_natuurindicatoren, outdir, connect_via_db, normal_groups, all_groups, extended_groups, groups_multiyear, extra_groups
