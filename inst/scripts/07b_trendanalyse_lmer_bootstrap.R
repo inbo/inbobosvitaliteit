@@ -212,12 +212,12 @@ dfBRMS_schade_yy  <- bomen_calc(x = dfTreesTrend,
   mutate(fJaar = factor(Jaar, levels = meerjaarlijks),
          totaal = onbeschadigd + beschadigd)
 
-if (recalc_sen) {
+if (recalc_lmer) {
   beschadigdyymodels <- NULL
   for (sel in unique(dfBRMS_schade_yy$selectie)) {
     dfBrmsschade <- filter(dfBRMS_schade_yy, selectie == sel)
     model <- try(brm(beschadigd| trials(totaal) ~ 0 + fJaar + (1|PlotNr), data = dfBrmsschade, family = binomial(),
-                     lmer_samples = 10000, thin = 20, chains = 3, cores = 3))
+                     iter = lmer_samples, thin = 20, chains = 3, cores = 3))
     beschadigdyymodels[[sel]] <- model
   }
 
