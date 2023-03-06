@@ -1,5 +1,5 @@
-## Onderstaand bovenste blok is een kopie van 05a_Trendanalyse-Sen, zodat de scripts los van elkaar kunnen werken
-## enkel 00_start.R moet gerund worden
+
+## enkel 00_start.R moet gerund worden voor dit script gebruikt kan worden
 ## Voor Geert: dit script zal je zelf waarschijnlijk niet kunnen uitvoeren, omdat ik hiervoor brms gebruik, wat heel wat extra installatie vergt.
 e <- try({
 library(brms)
@@ -123,9 +123,9 @@ if (inherits(e, "try-error")) stop("MISLUKT: LMER BLADVERLIES")
 
 
 
-############################################################################################
+################################################################################
 ### >>> Aandeel beschadigde bomen (TREND)
-############################################################################################
+################################################################################
 
 e <- try({
 dfBRMS_schade  <- bomen_calc(x = dfTreesTrend,
@@ -200,9 +200,9 @@ for (sel in names(beschadigdmodels)) {
 if (inherits(e, "try-error")) stop("MISLUKT: LMER FIGS BESCHADIGDE  BOMEN")
 
 
-############################################################################################
+################################################################################
 ### >>> Aandeel beschadigde bomen (JAAR PER JAAR)
-############################################################################################
+################################################################################
 
 e <- try({
 dfBRMS_schade_yy  <- bomen_calc(x = dfTreesTrend,

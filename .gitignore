@@ -41,3 +41,12 @@ vignettes/*.pdf
 #User directories
 2023/
 2022/
+
+#Temporary output files
+dfNatuurindicatoren.Rdata
+beschadigde_bosbomen.*
+vlaanderen_europa.*
+*.eps
+*.png
+meetpunten_indicator.csv
+
