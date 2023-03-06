@@ -14,20 +14,6 @@ if (!('git2rdata' %in% rownames(installed.packages() ))) remotes::install_github
 server   <- "inbo-sql07-prd.inbo.be"
 database <- "D0004_00_Bosvitaliteit"
 
-#!Figuur
-theme_set(theme_inbo(10))
-theme_inbo <- theme_update(axis.title.x = element_text(colour = "black"),
-                           axis.title.y = element_text(colour = "black"),
-                           plot.title = element_text(colour = "black"),
-                           legend.key = element_rect(fill = "white"))
-update_geom_defaults("point", aes(size = 2))
-update_geom_defaults("line", aes(size = 0.25))
-update_geom_defaults("point", aes(size = 1))
-update_geom_defaults("line", aes(size = 0.25))
-fig.width <- 147 / 25.4
-fig.height <- 103 / 25.4
-
-
 ### >>> Query
 
 natuurindicatoren_sql <- paste(
@@ -165,9 +151,28 @@ git2rdata::write_vc(vlaanderen_europa, file = "vlaanderen_europa.csv",
 #- beschadigde_bosbomen.csv
 #- vlaanderen_europa.csv
 #- vlaanderen_europa.yml
+#
 
 
+####################################################################################
+## ONDERSTAANDE WORDT IN DE NATUURINDICATOREN REPOSITORY ZELF UITGEVOERD
+## HIER ENKEL ALS TEST
 ##################################################################################
+
+## FIGUUR INSTELLINGEN
+#!Figuur
+theme_set(theme_inbo(10))
+theme_inbo <- theme_update(axis.title.x = element_text(colour = "black"),
+                           axis.title.y = element_text(colour = "black"),
+                           plot.title = element_text(colour = "black"),
+                           legend.key = element_rect(fill = "white"))
+update_geom_defaults("point", aes(size = 2))
+update_geom_defaults("line", aes(size = 0.25))
+update_geom_defaults("point", aes(size = 1))
+update_geom_defaults("line", aes(size = 0.25))
+fig.width <- 147 / 25.4
+fig.height <- 103 / 25.4
+
 
 ### >>> Indicatormodel (NIET MEER NODIG OM TE GEBRUIKEN, enkel ter illustratie ---> officiele berekning zit in het indicatoren repository, enkel dfNIS doorgeven)
 
