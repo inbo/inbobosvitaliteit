@@ -60,3 +60,33 @@ sem_boot <- 200 #hoeveelheid samples voor sen-bootstrap
 recalc_lmer <- FALSE #eenmalig wel op TRUE, duurt een hele poos
 lmer_samples <- 10000 #hoeveelheid iteratiestappen brm
 ``` 
+
+# Aanmaken van de indicator beschadigde bosbomen
+
+In het script 08_indicator_beschadigde_bosbomen wordt de data gegenereerd voor de natuurindicatoren website van het INBO, alsook worden de figuren gemaakt die ook worden gemaakt op de website. Enkel het stuk rond de data is belangrijk.
+
+Je hebt een databestandje vlaanderen_europa.csv nodig die een kommagescheiden tekstbestand is in de volgende vorm:
+
+```
+Jaar,niveau,Aandeel
+1990,Europa,19.5
+1990,Vlaanderen,8.3
+1991,Europa,20.7
+1991,Vlaanderen,12.9
+...
+...
+...
+2020,Europa,28.2
+2020,Vlaanderen,25.3
+2021,Europa,28.6
+2021,Vlaanderen,19.9
+2022,Europa,NA
+2022,Vlaanderen,26.6
+```
+
+Het script zal 4 files genereren, welke moeten gekopieerd worden naar de private github repository github.com/inbo/indicatoren/source/beschadigde_bosbomen
+
+- beschadigde_bosbomen.csv
+- beschadigde_bosbomen.yml
+- vlaanderen_europa.csv
+- vlaanderen_europa.yml
