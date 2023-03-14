@@ -1,5 +1,5 @@
 ### >>> Data
-jaren <- 1987:2022  #!!!! ieder jaar wijzigen
+jaren <- 1987:last_year  #!!!! ieder jaar wijzigen
 
 ### >>> Laden omgeving
 library(tidyverse)
