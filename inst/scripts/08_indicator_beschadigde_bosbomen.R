@@ -1,5 +1,5 @@
 ### >>> Data
-jaren <- 1987:last_year  #!!!! ieder jaar wijzigen
+jaren <- years_indicator  #!!!! zie 000_base_script
 
 ### >>> Laden omgeving
 library(tidyverse)
