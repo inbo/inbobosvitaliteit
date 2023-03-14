@@ -12,6 +12,7 @@ years_2 <- c(last_year - 1, last_year)
 years_3 <- c(last_year - 2, last_year - 1, last_year)
 years_trend <- 1995:last_year
 years_indicator <- 1987:last_year
+source_file_vlaanderen_europa <- "vlaanderen_europa.csv" #zet deze file in de correcte werkdirectory (getwd())
 setwd(getwd())    #locatie waar de bestanden moeten komen
 install_base_script() #maak een lokale kopie van het basissscript
 
@@ -33,9 +34,7 @@ sen_boot <- 200 #hoeveelheid samples voor sen-bootstrap (standaard 200)
 recalc_lmer <- FALSE #eenmalig wel op TRUE, duurt een hele poos
 lmer_samples <- 10000 #hoeveelheid iteratiestappen brm (standaard 10000)
 
-###Berekening indicator beschadigde bosbomen
 
-source_file_vlaanderen_europa <- "vlaanderen_europa.csv"
 
 #zorg dat bovenstaande file in je werkdirectory staat en er als volgt uitziet:
 # een kommagescheiden bestand hebt, met 3 kolommen met kolommen (zonder de commentaarhekjes zoals in het reële voorbeeld tem 2022  hieronden):
