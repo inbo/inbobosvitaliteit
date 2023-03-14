@@ -10,7 +10,8 @@ getwd()
 last_year <- 2022       #laatst gebruikte jaar in de dataset
 years_2 <- c(last_year - 1, last_year)
 years_3 <- c(last_year - 2, last_year - 1, last_year)
-years_trend <- 1995:2022
+years_trend <- 1995:last_year
+years_indicator <- 1987:last_year
 setwd(getwd())    #locatie waar de bestanden moeten komen
 install_base_script() #maak een lokale kopie van het basissscript
 
