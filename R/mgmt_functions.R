@@ -86,7 +86,7 @@ copy_scripts_and_sql_to <- function(target) {
 #'
 install_necessary_packages <- function() {
   #benodigde libraries
-  packages <- c("here", "odbc", "DBI", "tidyverse", "rkt", "rlang", "lme4", "remotes")
+  packages <- c("here", "odbc", "DBI", "tidyverse", "rkt", "rlang", "lme4", "remotes", "conflicted")
   install.packages(setdiff(packages, rownames(installed.packages())))
 
   #benodigde libraries vanuit github

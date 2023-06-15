@@ -15,6 +15,10 @@ library(tidyverse)
 library(DBI)
 library(inbobosvitaliteit)
 
+conflicted::conflicts_prefer(dplyr::filter)
+conflicted::conflicts_prefer(dplyr::lag)
+conflicted::conflicts_prefer(dplyr::select)
+
 ### init sessie (zet verschillende controlevariabelen in de environment)
 
 init_session(last_year, first_year = 1987, first_multiyear = 1995,
