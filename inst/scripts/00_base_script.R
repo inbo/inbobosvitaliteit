@@ -15,7 +15,7 @@ years_trend <- 1995:last_year
 years_indicator <- 1987:last_year
 source_file_vlaanderen_europa <- "vlaanderen_europa.csv" #zet deze file in de correcte werkdirectory (getwd())
 setwd(getwd())    #locatie waar de bestanden moeten komen
-install_base_script() #maak een lokale kopie van het basissscript
+
 
 plot_base_size <- 10    #standaard tekstgrootte in figuren
 use_local_db_export <- FALSE #gebruik reeds ingeladen data voor dit jaar
