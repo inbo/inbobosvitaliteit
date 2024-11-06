@@ -18,6 +18,7 @@ library(inbobosvitaliteit)
 conflicted::conflicts_prefer(dplyr::filter)
 conflicted::conflicts_prefer(dplyr::lag)
 conflicted::conflicts_prefer(dplyr::select)
+conflicted::conflicts_prefer(brms::ar)
 
 ### init sessie (zet verschillende controlevariabelen in de environment)
 
