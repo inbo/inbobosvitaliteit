@@ -7,7 +7,7 @@ e <- try({
   #maar er kunnen ook duplicaatrijen ontstaan door meerdere aangetaste delen,
   #meerdere symptoomspecificaties en meerdere symptoomoorzaken
 
-  dfSA <- get_SymptomAnalysisdata(dfTrees, dfSymptoms)
+  dfSA <- get_symptom_analysis_data(dfTrees, dfSymptoms)
 
   #!Levend, met symptomen
   #deze dataset heeft het nadeel dat er duplicaatrijen komen
@@ -18,7 +18,9 @@ e <- try({
                   !(AangetastDeelCode %in% c(0,4))) #0 = geen symptoom, #4 is dood
 
   #! Dode bomen
-  dfDead <- filter(dfSA, Jaar %in% jaarkeuze,  AangetastDeelCode == 4)
+  dfDead <- filter(dfSA,
+                   Jaar %in% jaarkeuze,
+                   AangetastDeelCode == 4)
 
   #! Voorbereidende totalentabel (gebruikt al een eerste keer bomen_calc)
   dfTotaalBomen <-

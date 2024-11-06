@@ -3,6 +3,7 @@
 #' @param root directory where the file structure should start from
 #'
 #' @return directories created on the file system
+#' @export
 #'
 generate_file_structure <- function(root = getwd()) {
   if (!dir.exists("data")) dir.create("data")

@@ -49,14 +49,12 @@ get_treedata <- function(channel,
   if (length(jaar) > 3)
     load_path <- gsub(".RDS", "_trend.RDS", load_path)
 
-
   jaarstring <- paste(jaar, collapse = ",")
   whereClause <-  paste0(" where w.WRNG_JAA in (", jaarstring, ")")
   sql <- paste(c(readLines(sqlfile), whereClause), collapse = "\n")
   if (show_query) cat(sql, "\n")
 
   df <- dbGetQuery(channel, sql)
-  print(head(df))
   maxOmtrekKlasse <- ceiling(max(df$Omtrek, na.rm = TRUE)/50)
   df <-
     mutate(df,

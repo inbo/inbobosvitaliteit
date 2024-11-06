@@ -42,9 +42,6 @@ get_symptomdata <- function(channel,
     mutate(SymptoomCode = as.numeric(.data$SymptoomCode),
            SymptoomOorzaakCode = as.numeric(.data$SymptoomOorzaakCode),
            AangetastDeelCode = as.numeric(.data$AangetastDeelCode))
-
-  print(str(df))
-
   df <- df %>%
     mutate(OnderdeelBoomCat =
              if_else(.data$AangetastDeelCode < 0,

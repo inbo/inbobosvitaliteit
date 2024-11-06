@@ -4,12 +4,7 @@ Title: Scripts voor de jaarlijkse bosvitaliteitsanalyse
 Version: 0.2.0
 Author: Pieter Verschelde
 Maintainer: Pieter Verschelde <pieter.verschelde@inbo.be>
-Description: 
-Dit package bevat de scripts en functies voor de jaarlijkse, 
-tweejaarlijkse, driejaarlijkse analyse, 
-trendanalyse via sen-slope en via een mixed model.
-Daarnaast bevat het ook de functies om de indicator beschadigde bosbomen 
-te berekenen.
+Description: Dit package bevat de scripts en functies voor de jaarlijkse, tweejaarlijkse, driejaarlijkse analyse, trendanalyse via sen-slope en via een mixed model. Daarnaast bevat het ook de functies om de indicator beschadigde bosbomen te berekenen.
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -24,4 +19,6 @@ Imports:
     rkt,
     rlang,
     tidyr
-RoxygenNote: 7.2.3
+Suggests: 
+    testthat (>= 3.0.0)
+RoxygenNote: 7.3.2

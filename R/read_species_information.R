@@ -13,7 +13,7 @@ read_species_information <-
       path <- file.path(system.file(package = "inbobosvitaliteit"),
                         "extdata",
                         "tree_reportmetadata.csv")
-    rv <- read_csv2(path) %>%
+    rv <- read_csv2(path, show_col_types = FALSE) %>%
       rename(Soort = .data$species,
              SoortType = .data$species_main_cat,
              SoortIndeling = .data$species_sub_cat,

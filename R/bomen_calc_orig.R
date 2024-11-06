@@ -16,7 +16,7 @@
 #' @importFrom rlang .data syms
 #' @importFrom stats sd median
 #'
-bomen_calc <-
+bomen_calc_orig <-
   function(x,
            group = c("Jaar"),
            group2 = NULL,
