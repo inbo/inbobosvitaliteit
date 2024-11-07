@@ -86,7 +86,7 @@ dfTreesTrend <- get_treedata(conn,
                              jaar = years_trend,
                              tree_indeling = dfSoortInfo,
                              local = !connect_via_db)
-cat("BOMEN VOOR TRENDBEREKENING geladen:", nrow(dfTrees3), "\n")
+cat("BOMEN VOOR TRENDBEREKENING geladen:", nrow(dfTreesTrend), "\n")
 
 ### AFGELEIDE DATASETS
 
