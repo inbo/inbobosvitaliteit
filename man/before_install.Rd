@@ -12,3 +12,10 @@ de nodige files worden in de package directory geschreven
 \description{
 To run before newly installing inbobosvitaliteit package
 }
+\examples{
+\dontrun{
+library(inbolims)
+setwd(here::here()
+before_install()
+}
+}

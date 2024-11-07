@@ -1,86 +1,92 @@
-
-
+##################
 ### INIT SESSIE
-#---------------
+##################
 
-### installatie en laden packages
+# Installeer en laad remotes
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+library(remotes)
 
-# if (!"remotes" %in% rownames(installed.packages())) install.packages("remotes")
-# remotes::install_github("inbo/inbobosvitaliteit", dependencies = TRUE)
-
+# Installeer nieuwe versie inbobosvitaliteit indien aanwezig
+remotes::install_github("inbo/inbobosvitaliteit", force = FALSE)
 inbobosvitaliteit::install_necessary_packages()
 
+#laadt noodzakelijke packages
 library(tidyverse)
-#library(dplyr);library(ggplot2);library(readr);library(tidyr);library(purrr)
 library(DBI)
 library(inbobosvitaliteit)
 
-conflicted::conflicts_prefer(dplyr::filter)
-conflicted::conflicts_prefer(dplyr::lag)
-conflicted::conflicts_prefer(dplyr::select)
+conflicted::conflicts_prefer(dplyr::filter, .quiet = TRUE)
+conflicted::conflicts_prefer(dplyr::lag, .quiet = TRUE)
+conflicted::conflicts_prefer(dplyr::select, .quiet = TRUE)
+conflicted::conflicts_prefer(brms::ar, .quiet = TRUE)
+conflicted::conflicts_prefer(dplyr::collapse, .quiet = TRUE)
+conflicted::conflicts_prefer(readr::edition_get, .quiet = TRUE)
+conflicted::conflicts_prefer(purrr::is_null, .quiet = TRUE)
+conflicted::conflicts_prefer(readr::local_edition, .quiet = TRUE)
+conflicted::conflicts_prefer(dplyr::matches, .quiet = TRUE)
+conflicted::conflicts_prefer(brms::s, .quiet = TRUE)
+conflicted::conflicts_prefer(brms::t2, .quiet = TRUE)
 
 ### init sessie (zet verschillende controlevariabelen in de environment)
 
 init_session(last_year, first_year = 1987, first_multiyear = 1995,
-             connect_via_db = !use_local_db_export )
+             connect_via_db = get_data_form_db )
 
 theme_set(INBOtheme::theme_inbo(plot_base_size)) #basisthema figuren
 
 generate_file_structure(getwd()) #maak file structuur aan
 
-if (copy_local) {
-  copy_scripts_and_sql_to(getwd()) #maak een lokale kopie van scripts en sql
-}
-
-
 ### Import data
 #------------------
 
 #db connectie
-if (use_local_db_export) {
-  conn <- NULL
-} else {
+if (connect_via_db) {
   conn <- bosvitaliteit_connect()
+} else {
+  conn <- NULL
 }
 
 ##soortenmetadata
 dfSoortInfo <- read_species_information()
+cat("SOORTINFO geladen:", nrow(dfSoortInfo),  "\n")
 
 ##bomen laatste jaar
 dfTrees <- get_treedata(conn,
                         jaar = last_year,
                         tree_indeling = dfSoortInfo,
-                        local = use_local_db_export)
-dim(dfTrees)
+                        local = !connect_via_db)
+cat("BOMEN LAATSTE JAAR geladen:", nrow(dfTrees), "\n")
 
 
 ##symptomen laatste jaar
 dfSymptoms <- get_symptomdata(conn,
                               jaar = last_year,
-                              local = use_local_db_export,
-                              show_query = TRUE)
-dim(dfSymptoms)
+                              local = !connect_via_db,
+                              show_query = FALSE)
+cat("SYMPTOMEN LAATSTE JAAR geladen:", nrow(dfSymptoms), "\n")
 
 ##bomen de laatste 2 jaar
 dfTrees2 <- get_treedata(conn,
                          jaar = years_2,
                          tree_indeling = dfSoortInfo,
-                         local = use_local_db_export)
-dim(dfTrees2)
+                         local = !connect_via_db)
+cat("BOMEN LAATSTE 2 JAAR geladen:", nrow(dfTrees2), "\n")
 
 ##bomen de laatste 3 jaar
 dfTrees3 <- get_treedata(conn,
                          jaar = years_3,
                          tree_indeling = dfSoortInfo,
-                         local = use_local_db_export)
-dim(dfTrees3)
+                         local = !connect_via_db)
+cat("BOMEN LAATSTE 3 JAAR geladen:", nrow(dfTrees3), "\n")
 
 ##bomen voor trendanalyse
 dfTreesTrend <- get_treedata(conn,
                              jaar = years_trend,
                              tree_indeling = dfSoortInfo,
-                             local = use_local_db_export)
-dim(dfTreesTrend)
+                             local = !connect_via_db)
+cat("BOMEN VOOR TRENDBEREKENING geladen:", nrow(dfTrees3), "\n")
 
 ### AFGELEIDE DATASETS
 
@@ -89,7 +95,7 @@ dfVolgorde <- dfSoortInfo %>%
   group_by(selectie) %>%
   summarise(volgorde = min(volgorde)) %>%
   arrange(volgorde)
-dim(dfVolgorde)
+cat("RAPPORTGROEPERING BOMEN geladen:", nrow(dfVolgorde), "\n")
 
 ### FORMAAT VLAANDEREN_EUROPA
 

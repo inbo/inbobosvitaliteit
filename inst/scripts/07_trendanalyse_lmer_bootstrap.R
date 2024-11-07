@@ -40,8 +40,6 @@ dfTrendBeschadigdSoort <-
 
 dfTrendBeschadigd <- bind_rows(dfTrendBeschadigdTot, dfTrendBeschadigdSoort, dfTrendBeschadigdType)
 
-
-
 dfBRMSbasis  <- bomen_calc(x = dfTreesTrend,
                           group = lapply(normal_groups, c, "PlotNr"),
                           respons = "BladverliesNetto")
@@ -57,24 +55,26 @@ e <- try({
 nnvmodels <- list()
 if (recalc_lmer) {
   for (sel in unique(dfBRMSbasis$selectie)) {
+    cat("Modelling", sel, "\n")
     dfBrms <- dfBRMSbasis %>%
       filter(selectie == sel) %>%
       ungroup() %>%
-      transmute(JaarC = (Jaar - meerjaarlijks[1])/diff(range(meerjaarlijks)), PlotNr, logBladverlies = log(mean_value + 2.5))
+      transmute(JaarC = (Jaar - meerjaarlijks[1])/diff(range(meerjaarlijks)),
+                PlotNr, logBladverlies = log(mean_value + 2.5))
 
     model <-  try(
-      brm(logBladverlies ~ JaarC + (1|PlotNr),
-          data = dfBrms, family = gaussian(),
-          autocor = cor_ar(~ JaarC|PlotNr, p = 1), #te brede intervallen
-          iter = lmer_samples, thin = 20, chains = 3, cores = 3))
+      brm(bf(logBladverlies ~ JaarC + (1|PlotNr),
+             autocor = ~ ar(time = JaarC, p = 1)|PlotNr),
+          data = dfBrms,
+          family = gaussian(),
+          iter = lmer_samples,
+          thin = 20,
+          chains = 3,
+          cores = 3))
     nnvmodels[[sel]] <- model
   }
   save(nnvmodels, file = file.path(outdir, "interim", "nnv_brms_models.Rdata"))
 }
-#else {
-#  load( file.path(outdir,"interim", "nnv_brms_models.Rdata"))
-#}
-
 })
 if (inherits(e, "try-error")) stop("MISLUKT: LMER BLADVERLIES")
 
@@ -87,6 +87,7 @@ if (inherits(e, "try-error")) stop("MISLUKT: LOADING LMER BLADVERLIES")
 e <- try({
 ### >>> Figuur maken
 for (sel in names(nnvmodels)) {
+  cat("Creating images for", sel, "\n")
   newdata <- data.frame(Jaar = min(meerjaarlijks):  max(meerjaarlijks)) %>%
     mutate(JaarC = (Jaar - meerjaarlijks[1])/diff(range(meerjaarlijks)), PlotNr = 0)
   plotdata <- dfBRMSbasis %>%
@@ -116,7 +117,6 @@ for (sel in names(nnvmodels)) {
     geom_ribbon(data = confs, aes(x = Jaar, ymin = lcl, ymax = ucl), inherit.aes = FALSE, alpha = 0.3, fill = INBOtheme::inbo_groen) +
       ylab("Bladverlies (%) brms") + ylim(0,40) + ggtitle(sel)
   ggsave(p, file = file.path(outdir, paste0("trend_nnv_",sel, "_brms.png")), dpi = fig_dpi, width = fig_width, height = fig_height)
-
 }
 })
 if (inherits(e, "try-error")) stop("MISLUKT: LMER BLADVERLIES")
@@ -135,6 +135,7 @@ beschadigdmodels <- list()
 
 if (recalc_lmer) {
   for (sel in unique(dfBRMSbasis$selectie)) {
+    cat("Modelling Beschadigd", sel, "\n")
     dfBrmsschade <- dfBRMS_schade %>%
       filter(selectie == sel) %>%
       ungroup() %>%
@@ -160,6 +161,7 @@ if (inherits(e, "try-error")) stop("MISLUKT: LOADING LMER BESCHADIGD")
 
 e <- try({
 for (sel in names(beschadigdmodels)) {
+  cat("Creating images for Beschadigd", sel, "\n")
   newdata <- data.frame(Jaar = min(meerjaarlijks):  max(meerjaarlijks)) %>%
     mutate(JaarC = (Jaar - meerjaarlijks[1])/diff(range(meerjaarlijks)), PlotNr = 0)
   plotdata <- dfBRMS_schade %>%
@@ -215,6 +217,7 @@ dfBRMS_schade_yy  <- bomen_calc(x = dfTreesTrend,
 if (recalc_lmer) {
   beschadigdyymodels <- NULL
   for (sel in unique(dfBRMS_schade_yy$selectie)) {
+    cat("Modelling Jaar per Jaar", sel, "\n")
     dfBrmsschade <- filter(dfBRMS_schade_yy, selectie == sel)
     model <- try(brm(beschadigd| trials(totaal) ~ 0 + fJaar + (1|PlotNr), data = dfBrmsschade, family = binomial(),
                      iter = lmer_samples, thin = 20, chains = 3, cores = 3))
@@ -235,6 +238,7 @@ if (inherits(e, "try-error")) stop("MISLUKT: LOADING YPY BESCHADIGDE  BOMEN")
 e <- try({
 plotdata <- NULL
 for (sel in names(beschadigdyymodels)) {
+  cat("Creating images for Jaar per Jaar", sel, "\n")
   modeldata <- cbind(data.frame(Jaar = meerjaarlijks, selectie = sel),
                     fixef(beschadigdyymodels[[sel]])) %>%
     mutate(fit = plogis(Estimate), lcl = plogis(Q2.5), ucl = plogis(Q97.5))
