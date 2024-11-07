@@ -43,6 +43,8 @@ vignettes/*.pdf
 2024/
 2023/
 2022/
+output/
+data/
 
 #Temporary output files
 dfNatuurindicatoren.Rdata

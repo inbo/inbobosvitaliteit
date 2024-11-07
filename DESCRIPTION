@@ -1,7 +1,7 @@
 Package: inbobosvitaliteit
 Type: Package
 Title: Scripts voor de jaarlijkse bosvitaliteitsanalyse
-Version: 0.2.0
+Version: 0.2.1
 Author: Pieter Verschelde
 Maintainer: Pieter Verschelde <pieter.verschelde@inbo.be>
 Description: Dit package bevat de scripts en functies voor de jaarlijkse, tweejaarlijkse, driejaarlijkse analyse, trendanalyse via sen-slope en via een mixed model. Daarnaast bevat het ook de functies om de indicator beschadigde bosbomen te berekenen.

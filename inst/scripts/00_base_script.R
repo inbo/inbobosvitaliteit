@@ -6,6 +6,8 @@
 #Open Rstudio via het .Rproj bestandje
 
 last_year         <- 2024    # laatst gebruikte jaar in de dataset
+first_year_trend  <- 1995    #eerste jaar voor trendeval (standaard 1995)
+first_year_indic  <- 1987    # eerste jaar indicator beschadigde bosbomen
 plot_base_size    <- 10      # standaard tekstgrootte in figuren (standaard 10)
 
 # Eens de analyse succesvol gelopen is, kan alles hieronder op FALSE
@@ -26,8 +28,8 @@ lmer_samples      <- 10000   # iteratiestappen brm (standaard 10000)
 
 years_2 <- c(last_year - 1, last_year)
 years_3 <- c(last_year - 2, last_year - 1, last_year)
-years_trend <- 1995:last_year
-years_indicator <- 1987:last_year
+years_trend <- first_year_trend : last_year
+years_indicator <- first_year_indic : last_year
 
 setwd(getwd())    #locatie waar de bestanden moeten komen
 
