@@ -21,6 +21,13 @@ conflicted::conflicts_prefer(dplyr::filter, .quiet = TRUE)
 conflicted::conflicts_prefer(dplyr::lag, .quiet = TRUE)
 conflicted::conflicts_prefer(dplyr::select, .quiet = TRUE)
 conflicted::conflicts_prefer(brms::ar, .quiet = TRUE)
+conflicted::conflicts_prefer(dplyr::collapse, .quiet = TRUE)
+conflicted::conflicts_prefer(readr::edition_get, .quiet = TRUE)
+conflicted::conflicts_prefer(purrr::is_null, .quiet = TRUE)
+conflicted::conflicts_prefer(readr::local_edition, .quiet = TRUE)
+conflicted::conflicts_prefer(dplyr::matches, .quiet = TRUE)
+conflicted::conflicts_prefer(brms::s, .quiet = TRUE)
+conflicted::conflicts_prefer(brms::t2, .quiet = TRUE)
 
 ### init sessie (zet verschillende controlevariabelen in de environment)
 
