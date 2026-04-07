@@ -1,17 +1,30 @@
-### >>> Data
-jaren <- years_indicator  #!!!! zie 000_base_script
-
 ### >>> Laden omgeving
 library(tidyverse)
 library(mgcv)
 library(INBOtheme)
-if (!('remotes' %in% rownames(installed.packages() ))) install.packages('remotes')
-if (!('git2rdata' %in% rownames(installed.packages() ))) remotes::install_github('inbo/git2rdata')
+if (!("remotes" %in% rownames(installed.packages()))) install.packages("remotes")
+if (!("git2rdata" %in% rownames(installed.packages()))) remotes::install_github("inbo/git2rdata")
+
+### >>> source necessary files
+source(file.path(
+  here::here(), "inst", "scripts",
+  "00_base_script.R"
+))
+source(file.path(
+  here::here(), "inst", "scripts",
+  "00_configuratie_en_data_import.R"
+))
+source_file_vlaanderen_europa <- "vlaanderen_europa.csv"
+
+### >>> Data
+
+jaren <- years_indicator # !!!! zie 000_base_script
+
 
 ### >>> Variabelen
 
-#! Server
-server   <- "inbo-sql07-prd.inbo.be"
+# ! Server
+server <- "inbo-sql07-prd.inbo.be"
 database <- "D0004_00_Bosvitaliteit"
 
 ### >>> Query
@@ -38,10 +51,11 @@ natuurindicatoren_sql <- paste(
 ### >>> Data ophalen
 
 conn <- DBI::dbConnect(odbc::odbc(),
-                       Driver = "SQL Server",
-                       Server = server,
-                       Database = database,
-                       Trusted_Connection = "True")
+  Driver = "SQL Server",
+  Server = server,
+  Database = database,
+  Trusted_Connection = "True"
+)
 
 dfNatuurindicatoren <- DBI::dbGetQuery(conn, natuurindicatoren_sql)
 save(dfNatuurindicatoren, file = "dfNatuurindicatoren.Rdata")
@@ -49,21 +63,27 @@ save(dfNatuurindicatoren, file = "dfNatuurindicatoren.Rdata")
 ### >>> Data transformaties
 
 dfNI <- dfNatuurindicatoren %>%
-  mutate(BladverliesNetto = as.numeric(BladverliesNetto),
-         Beschadigd = BladverliesNetto > 25,
-         jaar = Jaar,
-         Jaar = NULL) %>%
+  mutate(
+    BladverliesNetto = as.numeric(BladverliesNetto),
+    Beschadigd = BladverliesNetto > 25,
+    jaar = Jaar,
+    Jaar = NULL
+  ) %>%
   group_by(jaar)
 
 dfNIS <- dfNI %>%
-  summarize(beschadigd = sum(Beschadigd, na.rm = TRUE),
-            gezond = sum(!Beschadigd, na.rm = TRUE),
-            totaal = n()) %>%
+  summarize(
+    beschadigd = sum(Beschadigd, na.rm = TRUE),
+    gezond = sum(!Beschadigd, na.rm = TRUE),
+    totaal = n()
+  ) %>%
   mutate(schade_pct = beschadigd / totaal * 100)
 
-git2rdata::write_vc(dfNIS, file = "beschadigde_bosbomen.csv",
-                    sorting = c("jaar"),
-                    optimize = FALSE)
+git2rdata::write_vc(dfNIS,
+  file = "beschadigde_bosbomen.csv",
+  sorting = c("jaar"),
+  optimize = FALSE
+)
 
 ############################
 
@@ -145,11 +165,13 @@ vlaanderen_europa <- read_delim(source_file_vlaanderen_europa, delim = ",")
 
 
 vlaanderen_europa$niveau <- factor(vlaanderen_europa$niveau)
-git2rdata::write_vc(vlaanderen_europa, file = "vlaanderen_europa.csv",
-                    sorting = c("Jaar", "niveau"),
-                    optimize = FALSE)
+git2rdata::write_vc(vlaanderen_europa,
+  file = "vlaanderen_europa.csv",
+  sorting = c("Jaar", "niveau"),
+  optimize = FALSE
+)
 
-#Kopieer nu de bestanden die via write_csv gegenereerd worden naar de natuurindicatoren repository. Dit gaat over:
+# Kopieer nu de bestanden die via write_csv gegenereerd worden naar de natuurindicatoren repository. Dit gaat over:
 #- beschadigde_bosbomen.yml
 #- beschadigde_bosbomen.csv
 #- vlaanderen_europa.csv
@@ -163,12 +185,14 @@ git2rdata::write_vc(vlaanderen_europa, file = "vlaanderen_europa.csv",
 ##################################################################################
 
 ## FIGUUR INSTELLINGEN
-#!Figuur
+# !Figuur
 theme_set(theme_inbo(10))
-theme_inbo <- theme_update(axis.title.x = element_text(colour = "black"),
-                           axis.title.y = element_text(colour = "black"),
-                           plot.title = element_text(colour = "black"),
-                           legend.key = element_rect(fill = "white"))
+theme_inbo <- theme_update(
+  axis.title.x = element_text(colour = "black"),
+  axis.title.y = element_text(colour = "black"),
+  plot.title = element_text(colour = "black"),
+  legend.key = element_rect(fill = "white")
+)
 update_geom_defaults("point", aes(size = 2))
 update_geom_defaults("line", aes(size = 0.25))
 update_geom_defaults("point", aes(size = 1))
@@ -181,7 +205,7 @@ fig.height <- 103 / 25.4
 
 jni <- jaren
 
-modelIndicator <- gam(schade_pct ~ s(jaar, k=5), data = dfNIS)
+modelIndicator <- gam(schade_pct ~ s(jaar, k = 5), data = dfNIS)
 newdata <- data.frame(jaar = c(jni, jni[length(jni)] + 1:4))
 newdata$future <- ifelse(newdata$jaar > jni[length(jni)], "Unobserved", "Observed")
 newdata$predict <- predict(modelIndicator, newdata = newdata)
@@ -197,7 +221,7 @@ newdata$fit <- preds$fit
 DataFig <- data.frame(jaar = dfNIS$jaar, waarde = dfNIS$schade_pct)
 DataFig <- right_join(DataFig, newdata[c("jaar", "fit", "lwr", "upr")], by = c("jaar" = "jaar"))
 DataFig$spreiding <- TRUE
-DataFig$type <-  "Trend"
+DataFig$type <- "Trend"
 data <- subset(DataFig, jaar <= jni[length(jni)])
 data$eenheid <- "beschadigde bosbomen (%)"
 IND <- "Aandeel beschadigde bosbomen "
@@ -206,67 +230,97 @@ Sub_ID <- ""
 
 ### >>> Plot
 
-###PNG
+### PNG
 
-p <- ggplot(data, aes(x = jaar, y = fit, ymin = lwr, ymax = upr, linetype = type)) + ylab("beschadigde bosbomen (%)") +
+p <- ggplot(data, aes(x = jaar, y = fit, ymin = lwr, ymax = upr, linetype = type)) +
+  ylab("beschadigde bosbomen (%)") +
   geom_ribbon(alpha = 0.1, aes(fill = spreiding)) +
   geom_line() +
   geom_point(aes(y = waarde)) +
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_text(angle = 90, vjust = 0.5, color = "black"),
-        axis.ticks = element_line(color = "black"),
-        axis.text.y = element_text(color = "black")) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 90, vjust = 0.5, color = "black"),
+    axis.ticks = element_line(color = "black"),
+    axis.text.y = element_text(color = "black")
+  ) +
   scale_y_continuous(paste(unique(data$eenheid))) +
-  scale_linetype_discrete(guide = guide_legend(title = NULL,
-                                               override.aes = list(fill = NA),
-                                               label.theme = element_text(color = "black", size = 10))) +
-  scale_fill_manual(na.translate = FALSE,
-                    labels = c("onzekerheid\nop de trend"),
-                    values = c("TRUE" = inbo_steun_blauw),
-                    guide = guide_legend(title = NULL,
-                                         label.theme = element_text(color = "black", size = 10)))  +
+  scale_linetype_discrete(guide = guide_legend(
+    title = NULL,
+    override.aes = list(fill = NA),
+    label.theme = element_text(color = "black", size = 10)
+  )) +
+  scale_fill_manual(
+    na.translate = FALSE,
+    labels = c("onzekerheid\nop de trend"),
+    values = c("TRUE" = inbo_steun_blauw),
+    guide = guide_legend(
+      title = NULL,
+      label.theme = element_text(color = "black", size = 10)
+    )
+  ) +
   ggtitle(paste(IND, Sub_ID, sep = "\n"))
 
-ggsave(p, width = fig.width, height = fig.height,
-       file = paste0("",
-                     paste(gsub(" ", "",
-                                paste(IND, Sub_ID, sep = "__")), "png", sep = ".")))
+ggsave(p,
+  width = fig.width, height = fig.height,
+  file = paste0(
+    "",
+    paste(gsub(
+      " ", "",
+      paste(IND, Sub_ID, sep = "__")
+    ), "png", sep = ".")
+  )
+)
 
 print(p)
 
-###EPS
+### EPS
 
-p <- ggplot(data, aes(x = jaar, y = fit, ymin = lwr, ymax = upr, linetype = type)) + ylab("beschadigde bosbomen (%)") +
+p <- ggplot(data, aes(x = jaar, y = fit, ymin = lwr, ymax = upr, linetype = type)) +
+  ylab("beschadigde bosbomen (%)") +
   geom_ribbon(alpha = 1, aes(fill = spreiding)) +
   geom_line() +
   geom_point(aes(y = waarde)) +
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_text(angle = 90, vjust = 0.5, color = "black"),
-        axis.ticks = element_line(color = "black"),
-        axis.text.y = element_text(color = "black")) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 90, vjust = 0.5, color = "black"),
+    axis.ticks = element_line(color = "black"),
+    axis.text.y = element_text(color = "black")
+  ) +
   scale_y_continuous(paste(unique(data$eenheid))) +
-  scale_linetype_discrete(guide = guide_legend(title = NULL,
-                                               override.aes = list(fill = NA),
-                                               label.theme = element_text(color = "black", size = 10))) +
-  scale_fill_manual(na.translate = FALSE, labels = c("onzekerheid\nop de trend"),
-                    values = c("TRUE" = inbo_hoofd),
-                    guide = guide_legend(title = NULL,
-                                         label.theme = element_text(color = "black", size = 10)))  +
+  scale_linetype_discrete(guide = guide_legend(
+    title = NULL,
+    override.aes = list(fill = NA),
+    label.theme = element_text(color = "black", size = 10)
+  )) +
+  scale_fill_manual(
+    na.translate = FALSE, labels = c("onzekerheid\nop de trend"),
+    values = c("TRUE" = inbo_hoofd),
+    guide = guide_legend(
+      title = NULL,
+      label.theme = element_text(color = "black", size = 10)
+    )
+  ) +
   ggtitle(paste(IND, Sub_ID, sep = "\n"))
 
 print(p)
 
-ggsave(p, width = fig.width, height = fig.height,
-       file = paste0("",
-                     paste(gsub(" ", "",
-                                paste(IND, Sub_ID, sep = "__")), "eps", sep = ".")))
+ggsave(p,
+  width = fig.width, height = fig.height,
+  file = paste0(
+    "",
+    paste(gsub(
+      " ", "",
+      paste(IND, Sub_ID, sep = "__")
+    ), "eps", sep = ".")
+  )
+)
 
 write.csv2(file = "meetpunten_indicator.csv", DataFig)
 
 ### PLOT vergelijking met Europa
 
 p <- ggplot(vlaanderen_europa, aes(x = Jaar, y = Aandeel, color = niveau)) +
-  geom_path() + geom_point()
+  geom_path() +
+  geom_point()
 
 print(p)
-
